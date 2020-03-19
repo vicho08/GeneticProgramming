@@ -125,6 +125,14 @@ GPNode >> first [
 	^ children first
 ]
 
+{ #category : #'gt-inspector-extension' }
+GPNode >> gtInspectorTableIn: composite [
+	<gtInspectorPresentationOrder: -15>
+	composite text
+		title: 'Print';
+		display: [ self print ]
+]
+
 { #category : #initialization }
 GPNode >> initialize [
 	super initialize.

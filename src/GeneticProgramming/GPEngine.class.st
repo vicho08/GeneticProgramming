@@ -3,7 +3,8 @@ Class {
 	#superclass : #Object,
 	#instVars : [
 		'configuration',
-		'population'
+		'population',
+		'logs'
 	],
 	#category : #'GeneticProgramming-Core'
 }
@@ -28,9 +29,10 @@ GPEngine >> createInitialPopulation [
 GPEngine >> createNewGeneration [
 	"The argument is a collection of GPNode, each element being the root node of an individual."
 	"check if problem solved"
-	| i1 i2 newInd indexOfNegativeTournament |
+	| i1 i2 newInd newPopulation |
 	(self distanceFromSolutionOf: self pickBestIndividual) = 0 ifTrue: [ ^ self ].
 	
+	newPopulation := OrderedCollection new. 
 	population size timesRepeat: [
 		((configuration randomInt: 100) < 90) 
 			ifTrue: [  
@@ -39,9 +41,9 @@ GPEngine >> createNewGeneration [
 				newInd := i1 crossOverWith: i2 using: configuration random ]
 			ifFalse: [ 
 				newInd := self mutation ].
-		indexOfNegativeTournament := self negativeTournamentIndex.
-		population at: indexOfNegativeTournament put: newInd
+		newPopulation add: newInd
 	].
+	population := newPopulation
 ]
 
 { #category : #'as yet unclassified' }
@@ -95,17 +97,17 @@ GPEngine >> execute [
 	e configuration: GPAritConfiguration new.
 	e execute.
 	"
-
+	 
+	| log |
 	self createInitialPopulation.
 	1 to: configuration numberOfGenerations do: [ :gen | 
 		self createNewGeneration.
-		"Logging:"
-		('Generation: ' , gen asString) traceCr.
-		('Best individual: ' , self fitnessOfBestIndividual asString)
-			traceCr.
-		('Numb of different ind: '
-			, self numberOfDifferentIndividuals asString) traceCr.
-		'----' traceCr.
+		log := GPLog new.
+		log generation: gen.
+		log bestFitnessValue: self fitnessOfBestIndividual.
+		log worstFitnessValue: self fitnessOfWorstIndividual.
+		logs add: log. 
+
 		self fitnessOfBestIndividual = 0
 			ifTrue: [ ^ self ] ]
 ]
@@ -113,6 +115,25 @@ GPEngine >> execute [
 { #category : #accessing }
 GPEngine >> fitnessOfBestIndividual [
 	^ self distanceFromSolutionOf: self pickBestIndividual
+]
+
+{ #category : #accessing }
+GPEngine >> fitnessOfWorstIndividual [
+	^ self distanceFromSolutionOf: self pickWorstIndividual
+]
+
+{ #category : #visualization }
+GPEngine >> gtInspectorViewIn: composite [
+	<gtInspectorPresentationOrder: -10>
+	composite roassal2
+		title: 'View';
+		initializeView: [ self visualize ]
+]
+
+{ #category : #initialization }
+GPEngine >> initialize [
+	super initialize.
+	logs := OrderedCollection new
 ]
 
 { #category : #evolution }
@@ -163,6 +184,11 @@ GPEngine >> pickFitIndividuals [
 	^ self returnTopIndividuals: 0.5
 ]
 
+{ #category : #'as yet unclassified' }
+GPEngine >> pickWorstIndividual [
+	^ self rankedIndividuals last
+]
+
 { #category : #accessing }
 GPEngine >> population [
 	^ population 
@@ -207,7 +233,7 @@ GPEngine >> tournament [
 	| fitness best |
 	fitness := SmallInteger maxVal.
 	best := nil.
-	2 timesRepeat: [ 
+	5 timesRepeat: [ 
 		| competitor i |
 		competitor := configuration randomElementOf: population.
 		i := self distanceFromSolutionOf: competitor.
@@ -216,4 +242,23 @@ GPEngine >> tournament [
 			fitness := self distanceFromSolutionOf: competitor ]
 	].
 	^ best
+]
+
+{ #category : #visualization }
+GPEngine >> visualize [
+
+	| g d |
+	g := RTGrapher new.
+	d := RTData new.
+	d connectColor: Color blue.
+	d points: logs.
+	d y: #bestFitnessValue.
+	g add: d.
+	
+	d := RTData new.
+	d connectColor: Color red.
+	d points: logs.
+	d y: #worstFitnessValue.
+	g add: d.
+	^ g
 ]
