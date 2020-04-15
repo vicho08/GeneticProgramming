@@ -24,7 +24,7 @@ GPKnapsackConfiguration >> example [
 	e := GPEngine new.
 	e configuration: GPKnapsackConfiguration new.
 	e execute.
-	^ e pickBestIndividual
+	^ { e pickBestIndividual . e visualize}
 
 
 ]

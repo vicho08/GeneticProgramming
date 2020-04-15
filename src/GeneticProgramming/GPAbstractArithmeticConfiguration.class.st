@@ -5,6 +5,47 @@ Class {
 }
 
 { #category : #'instance creation' }
+GPAbstractArithmeticConfiguration >> boolean: t [
+	| res |
+	res := GPNode new.
+	res type: t.
+	res printBlock: [ :children :context | t asString ].
+	res evaluationBlock: [ :children :context | t ].
+	^ res
+]
+
+{ #category : #operations }
+GPAbstractArithmeticConfiguration >> conditionalNode [
+"
+	return a node that represent a conditional statement if ... then ... else ...
+"
+	| res |
+	res := GPNode new.
+	res printBlock: [ :children :context | 
+		'(if ', (children first printUsing: context), ' then ', (children second printUsing: context), ' else ', (children third printUsing: context), ')' ].
+	res evaluationBlock: [ :children :context | 
+		(children first evaluateUsing: context)
+  			ifTrue: [(children second evaluateUsing: context)]
+  			ifFalse: [(children third evaluateUsing: context)]].
+	^ res
+]
+
+{ #category : #operations }
+GPAbstractArithmeticConfiguration >> divNode [
+
+"
+	return a node that representa a division aritmethic
+"
+	| res |
+	res := GPNode new.
+	res printBlock: [ :children :context | 
+		'(', (children first printUsing: context), ' / ', (children second printUsing: context), ')' ].
+	res evaluationBlock: [ :children :context | 
+		((children first evaluateUsing: context) / (children second evaluateUsing: context) asFloat) ].
+	^ res
+]
+
+{ #category : #'instance creation' }
 GPAbstractArithmeticConfiguration >> multNode [
 
 "
@@ -39,6 +80,19 @@ GPAbstractArithmeticConfiguration >> newTerminal [
 	^ self randomBoolean
 		ifTrue: [ self newTerminalX ] 
 		ifFalse: [ self newTerminalNumber ]
+]
+
+{ #category : #'instance creation' }
+GPAbstractArithmeticConfiguration >> newTerminalBoolean [
+	"This method has to return a new boolean node"
+
+	"Could be true or false"
+	|res b|
+	b := self randomBoolean.
+	res := GPNode new.
+	res printBlock: [ :children :context | b asString ].
+	res evaluationBlock: [ :children :context | b ].
+	^ res
 ]
 
 { #category : #'instance creation' }

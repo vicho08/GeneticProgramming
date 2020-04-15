@@ -15,11 +15,6 @@ GPAbstactEngineTest class >> isAbstract [
 ]
 
 { #category : #initialization }
-GPAbstactEngineTest >> configurationClass [
-	self subclassResponsibility
-]
-
-{ #category : #initialization }
 GPAbstactEngineTest >> setUp [
 	configuration := self configurationClass new.
 	engine := GPEngine new.

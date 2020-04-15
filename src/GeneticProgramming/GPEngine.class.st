@@ -84,7 +84,7 @@ GPEngine >> createNewIndividual [
 
 ]
 
-{ #category : #'as yet unclassified' }
+{ #category : #operations }
 GPEngine >> distanceFromSolutionOf: individual [
 	^ configuration distanceFromSolutionOf: individual
 ]
@@ -107,7 +107,7 @@ GPEngine >> execute [
 		log bestFitnessValue: self fitnessOfBestIndividual.
 		log worstFitnessValue: self fitnessOfWorstIndividual.
 		logs add: log. 
-
+		
 		self fitnessOfBestIndividual = 0
 			ifTrue: [ ^ self ] ]
 ]
@@ -122,12 +122,12 @@ GPEngine >> fitnessOfWorstIndividual [
 	^ self distanceFromSolutionOf: self pickWorstIndividual
 ]
 
-{ #category : #visualization }
+{ #category : #UI }
 GPEngine >> gtInspectorViewIn: composite [
 	<gtInspectorPresentationOrder: -10>
-	composite roassal2
+	composite roassal3
 		title: 'View';
-		initializeView: [ self visualize ]
+		initializeCanvas: [ self visualize ]
 ]
 
 { #category : #initialization }
@@ -244,21 +244,17 @@ GPEngine >> tournament [
 	^ best
 ]
 
-{ #category : #visualization }
+{ #category : #UI }
 GPEngine >> visualize [
-
-	| g d |
-	g := RTGrapher new.
-	d := RTData new.
-	d connectColor: Color blue.
-	d points: logs.
-	d y: #bestFitnessValue.
-	g add: d.
-	
-	d := RTData new.
-	d connectColor: Color red.
-	d points: logs.
-	d y: #worstFitnessValue.
-	g add: d.
-	^ g
+	| c d best generations|
+	generations:= logs collect: [ :l | l generation ].
+	best := logs collect: [ :l | l bestFitnessValue ].
+	c := RSChart new.
+	d := RSLinePlot new x: generations y: best.
+	c addPlot: d.
+	c title: 'Fitness during Time'.
+	c addDecoration: (RSVerticalTick new integer fontSize: 10).
+	c addDecoration: (RSHorizontalTick new  integer fontSize: 10).
+	c build.
+	^ c canvas
 ]
