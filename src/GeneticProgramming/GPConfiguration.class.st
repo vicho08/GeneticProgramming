@@ -62,12 +62,7 @@ GPConfiguration >> initialize [
 
 { #category : #operations }
 GPConfiguration >> mutate: individual [
-	| nodeToMutate source |
-	nodeToMutate := self randomElementOf: (individual withAllChildren select: [ :n | n children isEmpty ]).
-	source := self newTerminal.
-	nodeToMutate evaluationBlock: source evaluationBlock.
-	nodeToMutate printBlock: source printBlock.
-	nodeToMutate type: source type.
+	self subclassResponsibility 
 ]
 
 { #category : #hooks }

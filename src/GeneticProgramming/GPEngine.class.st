@@ -34,7 +34,7 @@ GPEngine >> createNewGeneration [
 	
 	newPopulation := OrderedCollection new. 
 	population size timesRepeat: [
-		((configuration randomInt: 100) < 90) 
+		((configuration randomInt: 100) < 80) 
 			ifTrue: [  
 				i1 := self tournament.
 				i2 := self tournament.
@@ -102,6 +102,7 @@ GPEngine >> execute [
 	self createInitialPopulation.
 	1 to: configuration numberOfGenerations do: [ :gen | 
 		self createNewGeneration.
+		Transcript show: gen; cr.
 		log := GPLog new.
 		log generation: gen.
 		log bestFitnessValue: self fitnessOfBestIndividual.
@@ -248,7 +249,7 @@ GPEngine >> tournament [
 GPEngine >> visualize [
 	| c d best generations|
 	generations:= logs collect: [ :l | l generation ].
-	best := logs collect: [ :l | l bestFitnessValue ].
+	best := logs collect: [ :l | ((l bestFitnessValue) round: 3 )].
 	c := RSChart new.
 	d := RSLinePlot new x: generations y: best.
 	c addPlot: d.

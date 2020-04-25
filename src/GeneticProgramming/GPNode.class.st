@@ -44,15 +44,16 @@ GPNode >> atIndex: anIndex [
 
 { #category : #operations }
 GPNode >> atIndex: index put: anotherNode [
-	| i |
-	index < 1 ifTrue: [ ^ self ].
-	i := index.
-	i := i - 1.
-	self children doWithIndex: [ :child :ii |
-		i = 1 ifTrue: [  self children at: ii put: anotherNode. ^ self ].
-		child atIndex: i put: anotherNode.
-		i := i - 1. ].
-	
+	|i changeNode|
+	index =1 ifTrue: [ ^ anotherNode ].
+	i:= index.
+	changeNode:= self atIndex: index.
+	[ i > 0 ] whileTrue: [
+		i := i - 1.
+		(self atIndex: i) children doWithIndex:[ :child :ii |
+			child = changeNode
+			ifTrue: [ (self atIndex: i) children at: ii put: anotherNode. ^ self]
+	]]
 ]
 
 { #category : #accessing }
@@ -84,10 +85,20 @@ GPNode >> crossOverWith: anotherNode at: index1 at: index2 [
 GPNode >> crossOverWith: anotherNode using: random [
 	"This method should be called with two root nodes"
 
-	^ self
-		crossOverWith: anotherNode
-		at: (random nextInt: self numberOfNodes - 1) + 1
-		at: (random nextInt: anotherNode numberOfNodes - 1) + 1
+	| index1 index2 node otherNode |
+	index1:= (random nextInt: self numberOfNodes - 1) + 1.
+	index2:= (random nextInt: anotherNode numberOfNodes - 1) + 1.
+	self haveType & anotherNode haveType
+		ifTrue: [ 
+			node := self atIndex: index1.
+			otherNode := anotherNode atIndex: index2.
+			[ node sameType: otherNode ]
+				whileFalse: [ 
+					index1:= (random nextInt: self numberOfNodes - 1) + 1.
+					node := self atIndex: index1.
+					index2 := (random nextInt: anotherNode numberOfNodes - 1) + 1.
+					otherNode := anotherNode atIndex: index2]].
+		^ self crossOverWith: anotherNode at: index1 at: index2 
 ]
 
 { #category : #operations }
@@ -133,6 +144,11 @@ GPNode >> gtInspectorTableIn: composite [
 		display: [ self print ]
 ]
 
+{ #category : #testing }
+GPNode >> haveType [
+	^ self type isNotNil.
+]
+
 { #category : #initialization }
 GPNode >> initialize [
 	super initialize.
@@ -171,6 +187,11 @@ GPNode >> printBlock: anObject [
 { #category : #initialization }
 GPNode >> printUsing: context [
 	^ printBlock value: children value: context
+]
+
+{ #category : #testing }
+GPNode >> sameType: anotherNode [
+	^ self type = anotherNode type
 ]
 
 { #category : #accessing }

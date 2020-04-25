@@ -61,6 +61,16 @@ GPAbstractArithmeticConfiguration >> multNode [
 	^ res
 ]
 
+{ #category : #operations }
+GPAbstractArithmeticConfiguration >> mutate: individual [
+	| nodeToMutate source |
+	nodeToMutate := self randomElementOf: (individual withAllChildren select: [ :n | n children isEmpty ]).
+	source := self newTerminal.
+	nodeToMutate evaluationBlock: source evaluationBlock.
+	nodeToMutate printBlock: source printBlock.
+	nodeToMutate type: source type.
+]
+
 { #category : #hooks }
 GPAbstractArithmeticConfiguration >> newFunction [
 	"This method has to return a new function"
