@@ -125,7 +125,7 @@ GPAbstractGameConfiguration >> newTerminalBoolean [
 
 { #category : #hooks }
 GPAbstractGameConfiguration >> numberOfGenerations [ 
-	^100
+	^20
 ]
 
 { #category : #operations }

@@ -102,12 +102,12 @@ GPEngine >> execute [
 	self createInitialPopulation.
 	1 to: configuration numberOfGenerations do: [ :gen | 
 		self createNewGeneration.
-		Transcript show: gen; cr.
 		log := GPLog new.
 		log generation: gen.
 		log bestFitnessValue: self fitnessOfBestIndividual.
 		log worstFitnessValue: self fitnessOfWorstIndividual.
 		logs add: log. 
+		Transcript show: gen;cr.
 		
 		self fitnessOfBestIndividual = 0
 			ifTrue: [ ^ self ] ]
