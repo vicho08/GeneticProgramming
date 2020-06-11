@@ -5,10 +5,22 @@ Class {
 		'variables',
 		'methods',
 		'dictionary',
-		'test'
+		'test',
+		'unaryMethods',
+		'binaryMethods'
 	],
 	#category : #'GeneticProgramming-CodeGenerator'
 }
+
+{ #category : #accessing }
+GPCodeGenerator >> binaryMethods [
+	^ binaryMethods
+]
+
+{ #category : #accessing }
+GPCodeGenerator >> binaryMethods: aNameMethods [
+	binaryMethods := aNameMethods 
+]
 
 { #category : #accessing }
 GPCodeGenerator >> dictionary [
@@ -25,13 +37,24 @@ GPCodeGenerator >> distanceFromSolutionOf: individual [
 	"This method has to return a number that describes how close the individual is to the solution.
 	If this returns 0, then the individual is a perfect match
 	"
-	|d| 
+	|d eval penalty penalty2| 
 	d := Dictionary new.
-	d := dictionary copy.
-	individual evaluateUsing: d.
+	d := self dictionary copy.
 	
+	eval := [ individual evaluateUsing: d ]
+			on: Exception
+			do: [ 'error' ].
+			
+	penalty:=0.
+	"penalty error eval"
+	eval = 'error' ifTrue: [ penalty:= 10000 ].
+	
+	penalty2 := individual numberOfNodes <= 15
+		ifTrue: [ 0 ]
+		ifFalse: [ 10000].
+
 	"the fitness is the difference between associated value in the dictionary and the expected value"
-	^ ((d at: self variableTest) - (self valueTest)) abs  
+	^ ((d at: self variableTest) - (self valueTest)) abs + penalty + penalty2 .
 ]
 
 { #category : #example }
@@ -43,14 +66,23 @@ GPCodeGenerator >> example [
 	e := GPEngine new.
 	e configuration: self.
 	e execute.
-	^ e pickBestIndividual
+	^ e pickBestIndividual 
 ]
 
 { #category : #'as yet unclassified' }
 GPCodeGenerator >> generateWithVariables: vars andMessageNames: namesMethods [
 "save variables set and methos set"
 	self variables: vars.
-	self methods: namesMethods .
+	self parserMethods: namesMethods.
+
+]
+
+{ #category : #'as yet unclassified' }
+GPCodeGenerator >> generateWithVariables: vars unaryMethods: unaryMethods binaryMethods: binaryMethods [
+"save variables set and methos set"
+	self variables: vars.
+	self unaryMethods: unaryMethods.
+	self binaryMethods: binaryMethods.
 
 ]
 
@@ -68,6 +100,23 @@ GPCodeGenerator >> methods [
 { #category : #accessing }
 GPCodeGenerator >> methods: aNameMethods [
 	methods := aNameMethods 
+]
+
+{ #category : #'as yet unclassified' }
+GPCodeGenerator >> parserMethods: anArray [
+	| d numArgs unary binary|
+	d := Dictionary newFrom: anArray.
+	unary:= OrderedCollection new.
+	binary := OrderedCollection new.
+		
+	d doWithIndex: [ :dd :i |
+		numArgs:= ((d values at: i) >> (d keys at: i)) argumentNames size.
+		numArgs = 0 ifTrue: [unary add: (d keys at:i)]. 
+		numArgs = 1 ifTrue: [binary add: (d keys at: i)]].
+	
+	self unaryMethods: unary.
+	self binaryMethods: binary.
+	
 ]
 
 { #category : #initialization }
@@ -89,6 +138,16 @@ Set the test for fitness. Like: 'assert aKey equals: n'
 { #category : #initialization }
 GPCodeGenerator >> test: aKeyValue [
 	test:= aKeyValue.
+]
+
+{ #category : #accessing }
+GPCodeGenerator >> unaryMethods [
+	^ unaryMethods
+]
+
+{ #category : #accessing }
+GPCodeGenerator >> unaryMethods: aNameMethods [
+	unaryMethods := aNameMethods 
 ]
 
 { #category : #initialization }

@@ -79,12 +79,12 @@ GPConfiguration >> newTerminal [
 
 { #category : #hooks }
 GPConfiguration >> numberOfGenerations [
-	^ 20
+	^ 100
 ]
 
 { #category : #accessing }
 GPConfiguration >> populationSize [
-	^ 80
+	^ 70
 ]
 
 { #category : #accessing }

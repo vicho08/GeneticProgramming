@@ -4,20 +4,36 @@ Class {
 	#category : #'GeneticProgramming-Core'
 }
 
-{ #category : #'as yet unclassified' }
+{ #category : #operations }
 GPAbstractCodeGeneratorConfiguration >> assigmentNode [
 "
-x := y method
-Replace the value associated with x with the result that y sends the message 'method'
+x := ops
+Replace the value associated with x with the result of 'ops'
 "
 	| res |
 	res := GPNode new.
 	res printBlock: [ :children :context | 
-		(children first printUsing: context), ' := (', (children second printUsing: context), ' ', (children third printUsing: context), ')'].
+		(children first printUsing: context), ' := ', (children second printUsing: context), ''].
 	res evaluationBlock: [ :children :context | 
-		context at: (children first evaluateUsing: context) put: ((children third evaluateUsing: context) value: (context at: (children second evaluateUsing: context)))].
-	res type: 'conditional'.
+		context at: ((children first printUsing: context) asSymbol) put: (children second evaluateUsing: context)].
+	res type: 'assigment'.
 	^ res
+]
+
+{ #category : #'instance creation' }
+GPAbstractCodeGeneratorConfiguration >> binaryMethodNode [
+	| res t|
+	t := self randomElementOf: (self binaryMethods).
+	res := GPNode new.
+	res printBlock: [ :children :context | '(' , (children first printUsing: context), ' ', t asString , ' ' , (children second printUsing: context) , ')'].
+	res evaluationBlock: [ :children :context | (children first evaluateUsing: context) perform: t with: (children second evaluateUsing: context)].
+	res type: 'binaryMethod'.
+	^ res
+]
+
+{ #category : #accessing }
+GPAbstractCodeGeneratorConfiguration >> binaryMethods [
+	self subclassResponsibility 
 ]
 
 { #category : #operations }
@@ -37,19 +53,47 @@ GPAbstractCodeGeneratorConfiguration >> createNewIndividual [
 	
 	| rootNode |
 	rootNode := self assigmentNode.
-	self createNewIndividualRoot: rootNode depth: 1.
+	self createNewIndividualRoot: rootNode depth:4.
 	^ rootNode
 ]
 
 { #category : #'private-operation' }
 GPAbstractCodeGeneratorConfiguration >> createNewIndividualRoot: rootNode depth: depth [
 "
-create a simple assigment node:  anObject := otherObject aMethod
+create a simple assigment node:  var := expr 
+
+assigment 	:= var : expr
+expr 			:= unary | binary | var
+unary 			:= expr : unaryMethod
+binary 		:= expr : binaryMethod : expr
+
+var 			:= x | y | ...
+unaryMethod 	:= sqrt | squared | ...
+binaryMethod:= + | - | ...
 "
-	rootNode addChild: self newTerminalVariable.
-	rootNode addChild: self newTerminalVariable.
-	rootNode addChild: self newTerminalMethod.
-	^ self. 
+	| f c n| 
+	(rootNode sameType: (self assigmentNode )) ifTrue: [rootNode addChild: self newTerminalVariable].
+	
+	depth = 1 ifTrue: [ 
+		(rootNode sameType: (self unaryMethodNode)) ifTrue:
+		 [ rootNode addChild: self newTerminalVariable.
+			^ self].
+		(rootNode sameType: (self binaryMethodNode)) ifTrue:
+		 [ 1 to: 2 do: [:i | rootNode addChild: self newTerminalVariable.].  ^ self ]].
+	n := 1.
+	(rootNode sameType: (self binaryMethodNode)) ifTrue: [ n :=2 ].
+	1 to: n do:[ :i |
+	c := (self randomElementOf: (1 to: 3)).
+	c = 1 ifTrue: [ rootNode addChild: self newTerminalVariable].
+	c = 2 ifTrue: [ 
+		f:= self unaryMethodNode.
+		rootNode addChild: f.
+		self createNewIndividualRoot: f depth: depth - 1. ].
+	c= 3 ifTrue: [
+		f := self binaryMethodNode.
+		rootNode addChild: f.
+		self createNewIndividualRoot: f depth: depth - 1  ]].
+
 
 ]
 
@@ -62,19 +106,24 @@ GPAbstractCodeGeneratorConfiguration >> methods [
 GPAbstractCodeGeneratorConfiguration >> mutate: individual [
 	| nodeToMutate source |
 	nodeToMutate := self randomElementOf: (individual withAllChildren select: [ :n | n children isEmpty ]).
-	source := 
-		nodeToMutate type = 'method'
-		 	ifTrue: [self newTerminalMethod]
-			ifFalse: [ self newTerminalVariable].
+	source := self newTerminalVariable.
 	nodeToMutate evaluationBlock: source evaluationBlock.
 	nodeToMutate printBlock: source printBlock.
 	nodeToMutate type: source type.
 ]
 
 { #category : #'instance creation' }
+GPAbstractCodeGeneratorConfiguration >> newMethod [
+	| c |
+	c := (self randomElementOf: (1 to: 2)).
+	c = 1 ifTrue: [ ^ self unaryMethodNode ].
+	c = 2 ifTrue: [ ^ self binaryMethodNode  ].
+]
+
+{ #category : #'instance creation' }
 GPAbstractCodeGeneratorConfiguration >> newTerminalMethod [
 	| res t|
-	t := self randomElementOf: (self methods).
+	t := self randomElementOf: (self unaryMethods).
 	res := GPNode new.
 	res printBlock: [ :children :context | t asString ].
 	res evaluationBlock: [ :children :context | [ :object | object perform: t]]  .
@@ -88,9 +137,25 @@ GPAbstractCodeGeneratorConfiguration >> newTerminalVariable [
 	t := self randomElementOf: (self variables).
 	res := GPNode new.
 	res printBlock: [ :children :context | t asString ].
-	res evaluationBlock: [ :children :context | t asSymbol]  .
+	res evaluationBlock: [ :children :context | context at: t]  .
 	res type: 'variable'.
 	^ res
+]
+
+{ #category : #'instance creation' }
+GPAbstractCodeGeneratorConfiguration >> unaryMethodNode [
+	| res t|
+	t := self randomElementOf: (self unaryMethods).
+	res := GPNode new.
+	res printBlock: [ :children :context | '(',(children first printUsing: context), ' ', t asString , ')'].
+	res evaluationBlock: [ :children :context | (children first evaluateUsing: context) perform: t].
+	res type: 'unaryMethod'.
+	^ res
+]
+
+{ #category : #accessing }
+GPAbstractCodeGeneratorConfiguration >> unaryMethods [
+	self subclassResponsibility 
 ]
 
 { #category : #accessing }
