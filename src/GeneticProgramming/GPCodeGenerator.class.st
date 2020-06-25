@@ -3,7 +3,7 @@ Class {
 	#superclass : #GPAbstractCodeGeneratorConfiguration,
 	#instVars : [
 		'variables',
-		'methods',
+		'classes',
 		'dictionary',
 		'test',
 		'unaryMethods',
@@ -20,6 +20,26 @@ GPCodeGenerator >> binaryMethods [
 { #category : #accessing }
 GPCodeGenerator >> binaryMethods: aNameMethods [
 	binaryMethods := aNameMethods 
+]
+
+{ #category : #accessing }
+GPCodeGenerator >> classes [
+	^classes
+]
+
+{ #category : #accessing }
+GPCodeGenerator >> classes: aNameClasses [
+	classes:= aNameClasses
+]
+
+{ #category : #'as yet unclassified' }
+GPCodeGenerator >> codeBefore: aCode codeAfter: anOtherCode [
+	|names|
+	names := self extractVariableNames: aCode.
+	names addAll: (self extractVariableNames: anOtherCode).
+	self variables: (self getVariables: names).
+	self classes: (self getClasses: names).
+	self getMethods: classes.
 ]
 
 { #category : #accessing }
@@ -70,6 +90,16 @@ GPCodeGenerator >> example [
 ]
 
 { #category : #'as yet unclassified' }
+GPCodeGenerator >> extractVariableNames: code [
+	|ast v|
+	ast := RBParser parseExpression: code.
+	v := ExtractVariableNameVisitor new.
+	ast acceptVisitor: v.
+	^ v variableNames.
+	
+]
+
+{ #category : #'as yet unclassified' }
 GPCodeGenerator >> generateWithVariables: vars andMessageNames: namesMethods [
 "save variables set and methos set"
 	self variables: vars.
@@ -86,20 +116,68 @@ GPCodeGenerator >> generateWithVariables: vars unaryMethods: unaryMethods binary
 
 ]
 
+{ #category : #'as yet unclassified' }
+GPCodeGenerator >> getClass: aSymbolClass [
+	^ OpalCompiler new source: aSymbolClass; evaluate.
+]
+
+{ #category : #'as yet unclassified' }
+GPCodeGenerator >> getClasses: aCollection [
+	|answer|
+	answer := OrderedCollection new.
+	aCollection 
+			do: [ :aClass| 
+			(self isClass: aClass) ifTrue: [ answer add: aClass ] ].
+	^ answer removeDuplicates
+]
+
+{ #category : #'as yet unclassified' }
+GPCodeGenerator >> getMethods: aClasses [
+	|unaries binaries|
+	unaries:= OrderedCollection new.
+	binaries:= OrderedCollection new.
+	aClasses do: [ :c |
+		|aClass|
+		aClass := self getClass: c.
+		(aClass selectors) do: [ :method |
+			(self isKeywordMethod: method Class: aClass)
+			ifTrue: [binaries add: method]
+			ifFalse:[unaries add: method].]
+		 ].
+	
+	self unaryMethods: unaries.
+	self binaryMethods: binaries.
+]
+
+{ #category : #'as yet unclassified' }
+GPCodeGenerator >> getVariables: aCollection [
+|answer|
+	answer:= OrderedCollection new.
+	aCollection 
+		do: [ :aVariable | 
+			(self isClass: aVariable)
+				ifFalse: [ answer add: aVariable ] ].
+	^ answer removeDuplicates
+]
+
 { #category : #initialization }
 GPCodeGenerator >> initialize [
 	super initialize.
 ]
 
-{ #category : #accessing }
-GPCodeGenerator >> methods [
-	^methods
-
+{ #category : #testing }
+GPCodeGenerator >> isClass: aSymbol [
+	^Smalltalk allClassesAndTraits
+				includes:
+					(OpalCompiler new
+						source: aSymbol;
+						evaluate)
 ]
 
-{ #category : #accessing }
-GPCodeGenerator >> methods: aNameMethods [
-	methods := aNameMethods 
+{ #category : #testing }
+GPCodeGenerator >> isKeywordMethod: aMethod Class: aClass [
+	^(aClass >> aMethod) argumentNames size > 0
+
 ]
 
 { #category : #'as yet unclassified' }
