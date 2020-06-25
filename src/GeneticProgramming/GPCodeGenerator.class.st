@@ -7,7 +7,9 @@ Class {
 		'dictionary',
 		'test',
 		'unaryMethods',
-		'binaryMethods'
+		'binaryMethods',
+		'codeBefore',
+		'codeAfter'
 	],
 	#category : #'GeneticProgramming-CodeGenerator'
 }
@@ -32,9 +34,31 @@ GPCodeGenerator >> classes: aNameClasses [
 	classes:= aNameClasses
 ]
 
+{ #category : #accessing }
+GPCodeGenerator >> codeAfter [ 
+	^codeAfter 
+]
+
+{ #category : #accessing }
+GPCodeGenerator >> codeAfter: aCode [
+	codeAfter := aCode
+]
+
+{ #category : #accessing }
+GPCodeGenerator >> codeBefore [
+	^codeBefore
+]
+
+{ #category : #accessing }
+GPCodeGenerator >> codeBefore: aCode [
+	codeBefore := aCode
+]
+
 { #category : #'as yet unclassified' }
 GPCodeGenerator >> codeBefore: aCode codeAfter: anOtherCode [
 	|names|
+	self codeBefore: aCode.
+	self codeAfter: anOtherCode.
 	names := self extractVariableNames: aCode.
 	names addAll: (self extractVariableNames: anOtherCode).
 	self variables: (self getVariables: names).
@@ -57,24 +81,28 @@ GPCodeGenerator >> distanceFromSolutionOf: individual [
 	"This method has to return a number that describes how close the individual is to the solution.
 	If this returns 0, then the individual is a perfect match
 	"
-	|d eval penalty penalty2| 
-	d := Dictionary new.
-	d := self dictionary copy.
+	|codeToCompile eval "penalty penalty2"|
 	
-	eval := [ individual evaluateUsing: d ]
-			on: Exception
-			do: [ 'error' ].
-			
-	penalty:=0.
+	codeToCompile :=
+		'setUp', String cr,
+		'|x y d|', String cr,
+		codeBefore, String cr,
+		(individual print),
+		'. "<== adding line"', String cr,
+		codeAfter.
+	CodeGeneratorTest compile: codeToCompile .
+	
+	eval := CodeGeneratorTest buildSuite run passed size.	
+	"penalty:=0."
 	"penalty error eval"
-	eval = 'error' ifTrue: [ penalty:= 10000 ].
+	"eval = 'error' ifTrue: [ penalty:= 10000 ].
 	
 	penalty2 := individual numberOfNodes <= 15
 		ifTrue: [ 0 ]
-		ifFalse: [ 10000].
+		ifFalse: [ 10000]."
 
 	"the fitness is the difference between associated value in the dictionary and the expected value"
-	^ ((d at: self variableTest) - (self valueTest)) abs + penalty + penalty2 .
+	^ (4 - eval) abs.
 ]
 
 { #category : #example }
@@ -140,13 +168,12 @@ GPCodeGenerator >> getMethods: aClasses [
 		|aClass|
 		aClass := self getClass: c.
 		(aClass selectors) do: [ :method |
-			(self isKeywordMethod: method Class: aClass)
-			ifTrue: [binaries add: method]
-			ifFalse:[unaries add: method].]
-		 ].
+			(self isKeywordMethod: method Class: aClass) ifTrue: [binaries add: method].
+			(self isUnaryMethod: method Class: aClass) ifTrue: [unaries add: method].
+		 ].].
 	
 	self unaryMethods: unaries.
-	self binaryMethods: binaries.
+	self binaryMethods: binaries. 
 ]
 
 { #category : #'as yet unclassified' }
@@ -176,7 +203,13 @@ GPCodeGenerator >> isClass: aSymbol [
 
 { #category : #testing }
 GPCodeGenerator >> isKeywordMethod: aMethod Class: aClass [
-	^(aClass >> aMethod) argumentNames size > 0
+	^(aClass >> aMethod) argumentNames size = 1
+
+]
+
+{ #category : #testing }
+GPCodeGenerator >> isUnaryMethod: aMethod Class: aClass [
+	^(aClass >> aMethod) argumentNames size = 0
 
 ]
 

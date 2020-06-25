@@ -51,8 +51,10 @@ GPAbstractCodeGeneratorConfiguration >> createNewIndividual [
 	b
 	"
 	
-	| rootNode |
-	rootNode := self assigmentNode.
+	| rootNode c|
+	c:= (self randomElementOf: (1 to: 2)).
+	(c=1) ifTrue: [  rootNode := self assigmentNode].
+	(c=2) ifTrue: [ rootNode := self newMethod ].
 	self createNewIndividualRoot: rootNode depth:4.
 	^ rootNode
 ]
