@@ -81,6 +81,7 @@ GPCodeGenerator >> distanceFromSolutionOf: individual [
 		(individual print),
 		'. "<== adding line"', String cr,
 		codeAfter.
+
 	CodeGeneratorTest compile: codeToCompile .
 	
 	eval := CodeGeneratorTest buildSuite run passed size.	
@@ -203,6 +204,11 @@ GPCodeGenerator >> isKeywordMethod: aMethod Class: aClass [
 GPCodeGenerator >> isUnaryMethod: aMethod Class: aClass [
 	^(aClass >> aMethod) argumentNames size = 0
 
+]
+
+{ #category : #hooks }
+GPCodeGenerator >> numberOfGenerations [
+	^ 10
 ]
 
 { #category : #'as yet unclassified' }

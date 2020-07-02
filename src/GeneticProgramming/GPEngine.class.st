@@ -254,8 +254,9 @@ GPEngine >> visualize [
 	d := RSLinePlot new x: generations y: best.
 	c addPlot: d.
 	c title: 'Fitness during Time'.
-	c addDecoration: (RSVerticalTick new integer fontSize: 10).
+	c addDecoration: (RSVerticalTick new asFloat; fontSize: 10).
 	c addDecoration: (RSHorizontalTick new  integer fontSize: 10).
+	c mustInclude0inY.
 	c build.
 	^ c canvas
 ]
