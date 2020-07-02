@@ -17,8 +17,8 @@ CodeGeneratorTest >> setUp [
     d := RSLinePlot new.
     d color: Color red.
     d x: x y: y.
-y := y. "<== adding line"
- c build
+    c addPlot: d. "<== adding line"
+    c build
 ]
 
 { #category : #tests }
