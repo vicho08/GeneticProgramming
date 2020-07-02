@@ -240,7 +240,7 @@ GPEngine >> tournament [
 		i := self distanceFromSolutionOf: competitor.
 		i < fitness ifTrue: [ 
 			best := competitor.
-			fitness := self distanceFromSolutionOf: competitor ]
+			fitness := i]
 	].
 	^ best
 ]

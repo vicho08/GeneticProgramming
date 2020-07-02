@@ -4,12 +4,12 @@ Class {
 	#instVars : [
 		'variables',
 		'classes',
-		'dictionary',
-		'test',
+		'types',
 		'unaryMethods',
 		'binaryMethods',
 		'codeBefore',
-		'codeAfter'
+		'codeAfter',
+		'respondsVariables'
 	],
 	#category : #'GeneticProgramming-CodeGenerator'
 }
@@ -54,7 +54,7 @@ GPCodeGenerator >> codeBefore: aCode [
 	codeBefore := aCode
 ]
 
-{ #category : #'as yet unclassified' }
+{ #category : #initialization }
 GPCodeGenerator >> codeBefore: aCode codeAfter: anOtherCode [
 	|names|
 	self codeBefore: aCode.
@@ -62,18 +62,9 @@ GPCodeGenerator >> codeBefore: aCode codeAfter: anOtherCode [
 	names := self extractVariableNames: aCode.
 	names addAll: (self extractVariableNames: anOtherCode).
 	self variables: (self getVariables: names).
-	self classes: (self getClasses: names).
+	"self classes: (self getClasses: names). <- generic way"
+	self classes: {#RSChart . #RSLinePlot . #Array }.
 	self getMethods: classes.
-]
-
-{ #category : #accessing }
-GPCodeGenerator >> dictionary [
-	^dictionary
-]
-
-{ #category : #accessing }
-GPCodeGenerator >> dictionary: aDictionary [
-	dictionary:= aDictionary 
 ]
 
 { #category : #operations }
@@ -190,6 +181,7 @@ GPCodeGenerator >> getVariables: aCollection [
 { #category : #initialization }
 GPCodeGenerator >> initialize [
 	super initialize.
+	self restartRespondsVariables.
 ]
 
 { #category : #testing }
@@ -230,6 +222,16 @@ GPCodeGenerator >> parserMethods: anArray [
 	
 ]
 
+{ #category : #'as yet unclassified' }
+GPCodeGenerator >> respondsVariables [
+	^ respondsVariables
+]
+
+{ #category : #'as yet unclassified' }
+GPCodeGenerator >> restartRespondsVariables [
+	respondsVariables:= OrderedCollection new.
+]
+
 { #category : #initialization }
 GPCodeGenerator >> setInitialValues: arrayValues [
 	|dict|
@@ -246,9 +248,14 @@ Set the test for fitness. Like: 'assert aKey equals: n'
 	self test: { aKey . n }.
 ]
 
-{ #category : #initialization }
-GPCodeGenerator >> test: aKeyValue [
-	test:= aKeyValue.
+{ #category : #accessing }
+GPCodeGenerator >> types [
+	^types
+]
+
+{ #category : #accessing }
+GPCodeGenerator >> types: aDictionary [
+	types:= aDictionary 
 ]
 
 { #category : #accessing }
@@ -259,18 +266,6 @@ GPCodeGenerator >> unaryMethods [
 { #category : #accessing }
 GPCodeGenerator >> unaryMethods: aNameMethods [
 	unaryMethods := aNameMethods 
-]
-
-{ #category : #initialization }
-GPCodeGenerator >> valueTest [
-"Value for testing"
-	^ test at: 2. 
-]
-
-{ #category : #initialization }
-GPCodeGenerator >> variableTest [
-"variable for testing"
-	^ test at: 1. 
 ]
 
 { #category : #accessing }

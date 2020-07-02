@@ -5,7 +5,8 @@ Class {
 		'children',
 		'type',
 		'evaluationBlock',
-		'printBlock'
+		'printBlock',
+		'name'
 	],
 	#category : #'GeneticProgramming-Core'
 }
@@ -162,6 +163,16 @@ GPNode >> initialize [
 { #category : #testing }
 GPNode >> isLeaf [
 	^ children isEmpty
+]
+
+{ #category : #accessing }
+GPNode >> name [
+	^ name
+]
+
+{ #category : #accessing }
+GPNode >> name: aSymbol [
+	name := aSymbol
 ]
 
 { #category : #metrics }

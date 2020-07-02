@@ -28,6 +28,7 @@ GPAbstractCodeGeneratorConfiguration >> binaryMethodNode [
 	res printBlock: [ :children :context | '(' , (children first printUsing: context), ' ', t asString , ' ' , (children second printUsing: context) , ')'].
 	res evaluationBlock: [ :children :context | (children first evaluateUsing: context) perform: t with: (children second evaluateUsing: context)].
 	res type: 'binaryMethod'.
+	res name: t.
 	^ res
 ]
 
@@ -78,10 +79,10 @@ binaryMethod:= + | - | ...
 	
 	depth = 1 ifTrue: [ 
 		(rootNode sameType: (self unaryMethodNode)) ifTrue:
-		 [ rootNode addChild: self newTerminalVariable.
+		  [ rootNode addChild: (self respondsMethod: rootNode).
 			^ self].
 		(rootNode sameType: (self binaryMethodNode)) ifTrue:
-		 [ 1 to: 2 do: [:i | rootNode addChild: self newTerminalVariable.].  ^ self ]].
+		 [ 1 to: 2 do: [:i |  rootNode addChild: (self respondsMethod: rootNode)].  ^ self ]].
 	n := 1.
 	(rootNode sameType: (self binaryMethodNode)) ifTrue: [ n :=2 ].
 	1 to: n do:[ :i |
@@ -134,6 +135,17 @@ GPAbstractCodeGeneratorConfiguration >> newTerminalMethod [
 ]
 
 { #category : #'instance creation' }
+GPAbstractCodeGeneratorConfiguration >> newTerminalRespondsVariable [
+	| res t|
+	t := self randomElementOf: (self respondsVariables).
+	res := GPNode new.
+	res printBlock: [ :children :context | t asString ].
+	res evaluationBlock: [ :children :context | context at: t]  .
+	res type: 'variable'.
+	^ res
+]
+
+{ #category : #'instance creation' }
 GPAbstractCodeGeneratorConfiguration >> newTerminalVariable [
 	| res t|
 	t := self randomElementOf: (self variables).
@@ -144,6 +156,27 @@ GPAbstractCodeGeneratorConfiguration >> newTerminalVariable [
 	^ res
 ]
 
+{ #category : #'as yet unclassified' }
+GPAbstractCodeGeneratorConfiguration >> respondsMethod: rootNode [
+	(rootNode  children isEmpty)
+	ifFalse: [self newTerminalVariable  ].
+	self restartRespondsVariables .
+	self variables do: [ :v | ((self types at: v) respondsTo:  rootNode name)
+		ifTrue: [ self respondsVariables add: v ] ].
+	
+	^ self newTerminalRespondsVariable
+]
+
+{ #category : #'as yet unclassified' }
+GPAbstractCodeGeneratorConfiguration >> respondsVariables [
+	self subclassResponsibility
+]
+
+{ #category : #'as yet unclassified' }
+GPAbstractCodeGeneratorConfiguration >> restartRespondsVariables [
+	self subclassResponsibility
+]
+
 { #category : #'instance creation' }
 GPAbstractCodeGeneratorConfiguration >> unaryMethodNode [
 	| res t|
@@ -152,6 +185,7 @@ GPAbstractCodeGeneratorConfiguration >> unaryMethodNode [
 	res printBlock: [ :children :context | '(',(children first printUsing: context), ' ', t asString , ')'].
 	res evaluationBlock: [ :children :context | (children first evaluateUsing: context) perform: t].
 	res type: 'unaryMethod'.
+	res name: t.
 	^ res
 ]
 

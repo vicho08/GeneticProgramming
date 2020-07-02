@@ -11,14 +11,14 @@ Class {
 CodeGeneratorTest >> setUp [
 |x y d|
 
-	x := -3.14 to: 3.14 by: 0.1.
+	 x := -3.14 to: 3.14 by: 0.1.
     y := x cos.
     c := RSChart new.
     d := RSLinePlot new.
     d color: Color red.
     d x: x y: y.
-y := d. "<== adding line"
-c build.
+y := y. "<== adding line"
+ c build
 ]
 
 { #category : #tests }
