@@ -33,7 +33,8 @@ GPEngine >> createNewGeneration [
 	(self distanceFromSolutionOf: self pickBestIndividual) = 0 ifTrue: [ ^ self ].
 	
 	newPopulation := OrderedCollection new. 
-	population size timesRepeat: [
+	newPopulation add: self pickBestIndividual.
+	population size - 1 timesRepeat: [
 		((configuration randomInt: 100) < 80) 
 			ifTrue: [  
 				i1 := self tournament.
@@ -100,17 +101,21 @@ GPEngine >> execute [
 	 
 	| log |
 	self createInitialPopulation.
-	1 to: configuration numberOfGenerations do: [ :gen | 
-		self createNewGeneration.
-		log := GPLog new.
-		log generation: gen.
-		log bestFitnessValue: self fitnessOfBestIndividual.
-		log worstFitnessValue: self fitnessOfWorstIndividual.
-		logs add: log. 
-		Transcript show: gen;cr.
-		
-		self fitnessOfBestIndividual = 0
-			ifTrue: [ ^ self ] ]
+ 	UIManager default
+        informUserDuring: [ :bar | 
+				1 to: configuration numberOfGenerations do: [ :gen | 
+					bar label: gen asString.
+               self microPause.
+					
+					self createNewGeneration.
+					log := GPLog new.
+					log generation: gen.
+					log bestFitnessValue: self fitnessOfBestIndividual.
+					log worstFitnessValue: self fitnessOfWorstIndividual.
+					logs add: log. 
+					
+					self fitnessOfBestIndividual = 0
+						ifTrue: [ ^ self ] ] ]
 ]
 
 { #category : #accessing }
@@ -135,6 +140,13 @@ GPEngine >> gtInspectorViewIn: composite [
 GPEngine >> initialize [
 	super initialize.
 	logs := OrderedCollection new
+]
+
+{ #category : #hooks }
+GPEngine >> microPause [ 
+	"Useful when you wish to log in the Transcript and see progresses"
+	(Delay forMilliseconds: 1) wait.
+	World doOneCycleNow.
 ]
 
 { #category : #evolution }

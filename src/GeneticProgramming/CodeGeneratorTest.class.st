@@ -21,6 +21,12 @@ CodeGeneratorTest >> setUp [
     c build
 ]
 
+{ #category : #running }
+CodeGeneratorTest >> tearDown [
+
+	(SystemWindow allInstances select: [ :w | w label beginsWith: 'a RSAthensMorph' ] ) do: #delete
+]
+
 { #category : #tests }
 CodeGeneratorTest >> testBasic [
     self assert: c canvas shapes size equals: 2.

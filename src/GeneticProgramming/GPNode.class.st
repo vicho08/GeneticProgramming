@@ -6,7 +6,8 @@ Class {
 		'type',
 		'evaluationBlock',
 		'printBlock',
-		'name'
+		'name',
+		'fitnessCache'
 	],
 	#category : #'GeneticProgramming-Core'
 }
@@ -135,6 +136,17 @@ GPNode >> evaluationBlock: aOneArgBlock [
 { #category : #accessing }
 GPNode >> first [
 	^ children first
+]
+
+{ #category : #accessing }
+GPNode >> fitnessCache [
+	^ fitnessCache
+]
+
+{ #category : #accessing }
+GPNode >> fitnessCache: aNumber [
+	"Cache the fitness value. Does not copy the fitness when doing a deepcopy"
+	fitnessCache := aNumber
 ]
 
 { #category : #'gt-inspector-extension' }

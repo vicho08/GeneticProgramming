@@ -73,7 +73,7 @@ GPCodeGenerator >> distanceFromSolutionOf: individual [
 	If this returns 0, then the individual is a perfect match
 	"
 	|codeToCompile eval "penalty penalty2"|
-	
+	individual fitnessCache ifNotNil: [ ^ individual fitnessCache ].
 	codeToCompile :=
 		'setUp', String cr,
 		'|x y d|', String cr,
@@ -81,8 +81,9 @@ GPCodeGenerator >> distanceFromSolutionOf: individual [
 		(individual print),
 		'. "<== adding line"', String cr,
 		codeAfter.
-
-	CodeGeneratorTest compile: codeToCompile .
+	
+	SystemAnnouncer uniqueInstance 
+		suspendAllWhileStoring: [ CodeGeneratorTest compile: codeToCompile ].	
 	
 	eval := CodeGeneratorTest buildSuite run passed size.	
 	"penalty:=0."
@@ -94,7 +95,8 @@ GPCodeGenerator >> distanceFromSolutionOf: individual [
 		ifFalse: [ 10000]."
 
 	"the fitness is the difference between associated value in the dictionary and the expected value"
-	^ (4 - eval) abs.
+	individual fitnessCache: (4 - eval) abs.
+	^ individual fitnessCache
 ]
 
 { #category : #example }
