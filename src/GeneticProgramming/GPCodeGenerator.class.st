@@ -9,10 +9,46 @@ Class {
 		'binaryMethods',
 		'codeBefore',
 		'codeAfter',
-		'respondsVariables'
+		'respondsVariables',
+		'weightGen',
+		'sumWeightsUnary',
+		'sumWeightBinary'
 	],
 	#category : #'GeneticProgramming-CodeGenerator'
 }
+
+{ #category : #'as yet unclassified' }
+GPCodeGenerator >> acumulator: methods [
+	|sum|
+	sum := 0.
+	methods do: [ :arr | sum := sum + (arr at:2 )].
+	^ sum
+]
+
+{ #category : #adding }
+GPCodeGenerator >> addWeights: aWeightGenerator [
+	weightGen := aWeightGenerator.
+	self assignWeights: (self unaryMethods).
+	self sumWeightsUnary: (self acumulator: unaryMethods).
+	self assignWeights: (self binaryMethods).
+	self sumWeightsBinary: (self acumulator: binaryMethods).
+]
+
+{ #category : #'as yet unclassified' }
+GPCodeGenerator >> assignWeightTo: aMethod [
+	| w |
+	w:= (self weightGen) searchWeight: aMethod.
+	^{aMethod . w}
+]
+
+{ #category : #'as yet unclassified' }
+GPCodeGenerator >> assignWeights: arrayMethods [
+	
+	arrayMethods doWithIndex: [ :method :i |
+		arrayMethods at: i put: (self assignWeightTo: method)
+		 ]
+
+]
 
 { #category : #accessing }
 GPCodeGenerator >> binaryMethods [
@@ -185,6 +221,8 @@ GPCodeGenerator >> getVariables: aCollection [
 GPCodeGenerator >> initialize [
 	super initialize.
 	self restartRespondsVariables.
+	self sumWeightsBinary: 0.
+	self sumWeightsUnary: 0.
 ]
 
 { #category : #testing }
@@ -210,7 +248,7 @@ GPCodeGenerator >> isUnaryMethod: aMethod Class: aClass [
 
 { #category : #hooks }
 GPCodeGenerator >> numberOfGenerations [
-	^ 10
+	^ 30
 ]
 
 { #category : #'as yet unclassified' }
@@ -257,6 +295,26 @@ Set the test for fitness. Like: 'assert aKey equals: n'
 ]
 
 { #category : #accessing }
+GPCodeGenerator >> sumWeightsBinary [
+	^sumWeightBinary
+]
+
+{ #category : #accessing }
+GPCodeGenerator >> sumWeightsBinary: aInt [
+	sumWeightBinary := aInt
+]
+
+{ #category : #accessing }
+GPCodeGenerator >> sumWeightsUnary [
+	^sumWeightsUnary 
+]
+
+{ #category : #accessing }
+GPCodeGenerator >> sumWeightsUnary: aInt [
+	sumWeightsUnary := aInt
+]
+
+{ #category : #accessing }
 GPCodeGenerator >> types [
 	^types
 ]
@@ -285,4 +343,9 @@ GPCodeGenerator >> variables [
 { #category : #accessing }
 GPCodeGenerator >> variables: aVariables [
 	variables := aVariables
+]
+
+{ #category : #accessing }
+GPCodeGenerator >> weightGen [
+	^weightGen 
 ]
