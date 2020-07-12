@@ -17,7 +17,7 @@ CodeGeneratorTest >> setUp [
     d := RSLinePlot new.
     d color: Color red.
     d x: x y: y.
-(d isLiteral). "<== adding line"
+((c xLinear) renderIn: (c colorFor: c)). "<== adding line"
  c build
 ]
 

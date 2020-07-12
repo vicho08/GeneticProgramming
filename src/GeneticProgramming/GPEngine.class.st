@@ -4,7 +4,8 @@ Class {
 	#instVars : [
 		'configuration',
 		'population',
-		'logs'
+		'logs',
+		'fitnessOfPopulation'
 	],
 	#category : #'GeneticProgramming-Core'
 }
@@ -22,7 +23,9 @@ GPEngine >> configuration: aGPConfiguration [
 { #category : #hooks }
 GPEngine >> createInitialPopulation [
 	population := (1 to: self populationSize)
-		collect: [ :i | self createNewIndividual ]
+		collect: [ :i | self createNewIndividual ].
+	fitnessOfPopulation := self totalFitnessOfGeneration .
+	
 ]
 
 { #category : #evolution }
@@ -37,14 +40,15 @@ GPEngine >> createNewGeneration [
 	population size - 1 timesRepeat: [
 		((configuration randomInt: 100) < 80) 
 			ifTrue: [  
-				i1 := self tournament.
-				i2 := self tournament.
+				i1 := self rouletteSelection.
+				i2 := self rouletteSelection.
 				newInd := i1 crossOverWith: i2 using: configuration random ]
 			ifFalse: [ 
 				newInd := self mutation ].
 		newPopulation add: newInd
 	].
-	population := newPopulation
+	population := newPopulation.
+	fitnessOfPopulation := self totalFitnessOfGeneration 
 ]
 
 { #category : #'as yet unclassified' }
@@ -238,6 +242,26 @@ GPEngine >> returnTopIndividuals: ratio [
 	"return the list of individuals that are considered as fit"
 	^ self rankedIndividuals copyFrom: 1 to: (population size * ratio) asInteger
 
+]
+
+{ #category : #evolution }
+GPEngine >> rouletteSelection [
+	"Return the best individual from a rouletteSelection"
+	|p sum|
+	p := configuration randomElementOf: (0 to: fitnessOfPopulation).
+	sum:= 0.
+	population do:  [ :individual |
+		sum := sum + (self distanceFromSolutionOf: individual).
+		sum >= p ifTrue: [ ^individual]
+	]
+]
+
+{ #category : #evolution }
+GPEngine >> totalFitnessOfGeneration [
+	|total|
+	total:= 0.
+	population do: [ :individual  | total := total + (self distanceFromSolutionOf: individual)].
+	^total
 ]
 
 { #category : #evolution }
