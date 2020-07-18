@@ -9,16 +9,18 @@ Class {
 
 { #category : #running }
 CodeGeneratorTest >> setUp [
-|x y d|
+|x y d q|
 
 	 x := -3.14 to: 3.14 by: 0.1.
     y := x cos.
     c := RSChart new.
-    d := RSLinePlot new.
-    d color: Color red.
-    d x: x y: y.
-((c xLinear) renderIn: (c colorFor: c)). "<== adding line"
- c build
+    d := RSLinePlot new. 
+	 q := Color.
+(q color: (q red)). "<== adding line"
+
+	d x: x y: y.
+	c addPlot: d.
+	c build
 ]
 
 { #category : #running }

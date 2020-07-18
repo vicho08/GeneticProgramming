@@ -98,8 +98,8 @@ GPCodeGenerator >> codeBefore: aCode codeAfter: anOtherCode [
 	names := self extractVariableNames: aCode.
 	names addAll: (self extractVariableNames: anOtherCode).
 	self variables: (self getVariables: names).
-	"self classes: (self getClasses: names). <- generic way"
-	self classes: {#RSChart . #RSLinePlot . #Array }.
+	self classes: (self getClasses: names).
+	
 	self getMethods: classes.
 ]
 
@@ -112,7 +112,7 @@ GPCodeGenerator >> distanceFromSolutionOf: individual [
 	individual fitnessCache ifNotNil: [ ^ individual fitnessCache ].
 	codeToCompile :=
 		'setUp', String cr,
-		'|x y d|', String cr,
+		'|x y d q|', String cr,
 		codeBefore, String cr,
 		(individual print),
 		'. "<== adding line"', String cr,

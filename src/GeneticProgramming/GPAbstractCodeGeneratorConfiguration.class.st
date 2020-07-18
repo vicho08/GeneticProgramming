@@ -142,6 +142,7 @@ GPAbstractCodeGeneratorConfiguration >> newTerminalMethod [
 { #category : #'instance creation' }
 GPAbstractCodeGeneratorConfiguration >> newTerminalRespondsVariable [
 	| res t|
+	(self respondsVariables isEmpty) ifTrue:[ ^self newTerminalVariable  ].
 	t := self randomElementOf: (self respondsVariables).
 	res := GPNode new.
 	res printBlock: [ :children :context | t asString ].
