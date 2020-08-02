@@ -52,7 +52,7 @@ Finalmente para ejecutar, basta con seleccionar todo el código y teclear `ctrl 
 
 	- Código generado: `c addPlot: d`
 	
-	![alt text](https://github.com/vicho08/GeneticProgramming/master/images/fitnessTime.png "Evolución fitness durante el avance del programa genético")
+	![alt text](https://github.com/vicho08/GeneticProgramming/blob/master/images/fitnessTime.png "Evolución fitness durante el avance del programa genético")
 
 
 
