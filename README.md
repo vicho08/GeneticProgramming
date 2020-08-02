@@ -50,7 +50,9 @@ Finalmente para ejecutar, basta con seleccionar todo el código y teclear `ctrl 
 
 * Resultados
 
-- Código generado: `c addPlot: d`
+	- Código generado: `c addPlot: d`
+	
+	![alt text](https://github.com/vicho08/GeneticProgramming/master/images/fitnessTime.png "Evolución fitness durante el avance del programa genético")
 
 
 
