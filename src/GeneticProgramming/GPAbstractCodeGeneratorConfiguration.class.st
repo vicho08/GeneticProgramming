@@ -35,11 +35,16 @@ GPAbstractCodeGeneratorConfiguration >> createNewIndividual [
 	b
 	"
 	
-	| rootNode c|
-	c:= 2.
-	(c=1) ifTrue: [  rootNode := self assigmentNode].
-	(c=2) ifTrue: [ rootNode := self newMethod ].
-	self createNewIndividualRoot: rootNode depth:2.
+	| rootNode m|
+	((self randomElementOf: (0 to: 10) )< 2)
+	 ifTrue: [  
+		rootNode := self returnNode.
+		m := self newMethod.
+		rootNode addChild: m.
+		(self createNewIndividualRoot: m depth: 2).
+		^ rootNode]
+	 ifFalse: [ rootNode := self newMethod ].
+	self createNewIndividualRoot: rootNode depth: 2.
 	^ rootNode
 ]
 
@@ -190,6 +195,17 @@ GPAbstractCodeGeneratorConfiguration >> respondsVariables [
 { #category : #'as yet unclassified' }
 GPAbstractCodeGeneratorConfiguration >> restartRespondsVariables [
 	self subclassResponsibility
+]
+
+{ #category : #'as yet unclassified' }
+GPAbstractCodeGeneratorConfiguration >> returnNode [
+	| res |
+	res := GPNode new.
+	
+	res printBlock: [ :children :context | '^ ' , (children first printUsing: context), ' '].
+	res type: 'return'.
+	res name: 'return'.
+	^ res 
 ]
 
 { #category : #'as yet unclassified' }

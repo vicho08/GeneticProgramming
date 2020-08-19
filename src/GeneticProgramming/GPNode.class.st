@@ -87,20 +87,10 @@ GPNode >> crossOverWith: anotherNode at: index1 at: index2 [
 GPNode >> crossOverWith: anotherNode using: random [
 	"This method should be called with two root nodes"
 
-	| index1 index2 node otherNode |
+	| index1 index2 |
 	index1:= (random nextInt: self numberOfNodes - 1) + 1.
 	index2:= (random nextInt: anotherNode numberOfNodes - 1) + 1.
-	self haveType & anotherNode haveType
-		ifTrue: [ 
-			node := self atIndex: index1.
-			otherNode := anotherNode atIndex: index2.
-			[ node sameType: otherNode ]
-				whileFalse: [ 
-					index1:= (random nextInt: self numberOfNodes - 1) + 1.
-					node := self atIndex: index1.
-					index2 := (random nextInt: anotherNode numberOfNodes - 1) + 1.
-					otherNode := anotherNode atIndex: index2]].
-		^ self crossOverWith: anotherNode at: index1 at: index2 
+	^ self crossOverWith: anotherNode at: index1 at: index2 
 ]
 
 { #category : #operations }

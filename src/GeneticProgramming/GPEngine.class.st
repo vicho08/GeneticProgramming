@@ -32,18 +32,23 @@ GPEngine >> createInitialPopulation [
 GPEngine >> createNewGeneration [
 	"The argument is a collection of GPNode, each element being the root node of an individual."
 	"check if problem solved"
-	| i1 i2 newInd newPopulation |
+	| i1 i2 newInd newInd2 newPopulation sizeHalf|
 	(self distanceFromSolutionOf: self pickBestIndividual) = 0 ifTrue: [ ^ self ].
 	
 	newPopulation := OrderedCollection new. 
 	newPopulation add: self pickBestIndividual.
-	population size - 1 timesRepeat: [
+	sizeHalf := ((population size -1) / 2.0) ceiling.
+	sizeHalf timesRepeat: [
 		i1 := self rouletteSelection.
 		i2 := self rouletteSelection.
 		newInd := i1 crossOverWith: i2 using: configuration random.
+		newInd2 := i2 crossOverWith: i1 using: configuration random. 
 		((configuration randomInt: 100) > 80)
 			ifTrue: [ newInd := self mutation: newInd ].
-		newPopulation add: newInd
+		((configuration randomInt: 100) > 80)
+			ifTrue: [ newInd2 := self mutation: newInd2 ].
+		newPopulation add: newInd.
+		newPopulation add: newInd2  
 	].
 	population := newPopulation.
 	fitnessOfPopulation := self totalFitnessOfGeneration 
