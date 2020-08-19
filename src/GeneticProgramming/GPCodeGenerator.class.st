@@ -247,6 +247,11 @@ GPCodeGenerator >> isUnaryMethod: aMethod Class: aClass [
 
 ]
 
+{ #category : #accessing }
+GPCodeGenerator >> methods [ 
+	^methods
+]
+
 { #category : #hooks }
 GPCodeGenerator >> numberOfGenerations [
 	^ 30
@@ -293,6 +298,11 @@ GPCodeGenerator >> setTest: aKey value: n [
 Set the test for fitness. Like: 'assert aKey equals: n'
 "
 	self test: { aKey . n }.
+]
+
+{ #category : #accessing }
+GPCodeGenerator >> sumWeightsAllMethods [
+	^sumWeightsAllMethods 
 ]
 
 { #category : #accessing }

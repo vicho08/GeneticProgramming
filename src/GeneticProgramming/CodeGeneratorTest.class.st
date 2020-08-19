@@ -16,11 +16,10 @@ CodeGeneratorTest >> setUp [
     c := RSChart new.
     d := RSLinePlot new. 
 	 d color: Color red.
+	 d x: x y: y.
 	
-	(c addPlot: d). "<== adding line"
-
-	d x: x y: y.
-	c build
+(c red). "<== adding line"
+c build
 ]
 
 { #category : #running }

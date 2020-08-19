@@ -20,23 +20,6 @@ Replace the value associated with x with the result of 'ops'
 	^ res
 ]
 
-{ #category : #'instance creation' }
-GPAbstractCodeGeneratorConfiguration >> binaryMethodNode [
-	| res t|
-	t := (self pickRandomMethod: (self binaryMethods ) with: (self randomElementOf: (0 to: (self sumWeightsBinary)) )).
-	res := GPNode new.
-	res printBlock: [ :children :context | '(' , (children first printUsing: context), ' ', t asString , ' ' , (children second printUsing: context) , ')'].
-	res evaluationBlock: [ :children :context | (children first evaluateUsing: context) perform: t with: (children second evaluateUsing: context)].
-	res type: 'binaryMethod'.
-	res name: t.
-	^ res
-]
-
-{ #category : #accessing }
-GPAbstractCodeGeneratorConfiguration >> binaryMethods [
-	self subclassResponsibility 
-]
-
 { #category : #operations }
 GPAbstractCodeGeneratorConfiguration >> createNewIndividual [
 	"Return a new individual"
@@ -75,29 +58,50 @@ unaryMethod 	:= sqrt | squared | ...
 binaryMethod:= + | - | ...
 "
 	| f c n| 
-	(rootNode sameType: (self assigmentNode )) ifTrue: [rootNode addChild: self newTerminalVariable].
+	n := rootNode type. "number of args of the method"
 	
-	depth = 1 ifTrue: [ 
-		(rootNode sameType: (self unaryMethodNode)) ifTrue:
-		  [ rootNode addChild: (self respondsMethod: rootNode).
-			^ self].
-		(rootNode sameType: (self binaryMethodNode)) ifTrue:
-		 [ 1 to: 2 do: [:i |  rootNode addChild: (self respondsMethod: rootNode)].  ^ self ]].
-	n := 1.
-	(rootNode sameType: (self binaryMethodNode)) ifTrue: [ n :=2 ].
-	1 to: n do:[ :i |
-	c := (self randomElementOf: (1 to: 3)).
-	c = 1 ifTrue: [ rootNode addChild: self newTerminalVariable].
-	c = 2 ifTrue: [ 
-		f:= self unaryMethodNode.
-		rootNode addChild: f.
-		self createNewIndividualRoot: f depth: depth - 1. ].
-	c= 3 ifTrue: [
-		f := self binaryMethodNode.
-		rootNode addChild: f.
-		self createNewIndividualRoot: f depth: depth - 1  ]].
+	rootNode addChild: (self respondsMethod: rootNode). "object that call the method"
+	
+	(depth = 1) 
+		ifTrue: [ 1 to: n do: 
+			[ :i | 
+			rootNode addChild: self newTerminalVariable].
+			^self].
+		
+	1 to: n do: [ :i |
+		c := self randomElementOf: (1 to: 2).
+		(c = 1) ifTrue: [ rootNode addChild: self newTerminalVariable ].
+		(c = 2) ifTrue: [ 
+			f := self methodNode.
+			rootNode addChild: f.
+			self createNewIndividualRoot: f depth: depth - 1  ]. ]
+		
+	
+	
 
 
+]
+
+{ #category : #accessing }
+GPAbstractCodeGeneratorConfiguration >> methodNode [ 
+	| res mt msplit t|
+	mt := (self pickRandomMethod: (self methods) with: (self randomElementOf: (0 to: (self sumWeightsAllMethods)) )).
+	t := mt name.
+	res := GPNode new.
+
+	msplit := (t asString) splitOn: ':'.
+	(msplit size = 1)
+	ifTrue:[res printBlock: [ :children :context | '(' , (children first printUsing: context), ' ', t asString , ')'].]
+	ifFalse:[
+		res printBlock: [:children :context | 
+			|ans|
+			ans:= (children first printUsing: context), ' '.
+		msplit doWithIndex: [:key :i | (i < msplit size) ifTrue: [ans:= ans , key , ': ' , ((children at: (i+1)) printUsing: context) , ' ']].
+		'(' , ans , ')']].
+
+	res type: (mt numArgs).
+	res name: t.
+	^ res 
 ]
 
 { #category : #accessing }
@@ -121,11 +125,7 @@ GPAbstractCodeGeneratorConfiguration >> mutate: individual [
 
 { #category : #'instance creation' }
 GPAbstractCodeGeneratorConfiguration >> newMethod [
-	| c |
-	c := (self randomElementOf: (0 to: (self sumWeightsUnary+ self sumWeightsBinary ))).
-	(c <= (self sumWeightsUnary )) 
-		ifTrue: [ ^ self unaryMethodNode ]
-		ifFalse: [ ^ self binaryMethodNode  ].
+	^ self methodNode
 ]
 
 { #category : #'instance creation' }
@@ -166,8 +166,8 @@ GPAbstractCodeGeneratorConfiguration >> newTerminalVariable [
 GPAbstractCodeGeneratorConfiguration >> pickRandomMethod: methods with: ran [ 
 	|acc|
 	acc:= 0.
-	methods do: [ :mw | acc := acc + (mw at: 2).
-		(acc >= ran) ifTrue: [ ^ mw at: 1 ]. ].
+	methods do: [ :mw | acc := acc + (mw weight).
+		(acc >= ran) ifTrue: [ ^ mw ]. ].
 	
 ]
 
@@ -193,34 +193,7 @@ GPAbstractCodeGeneratorConfiguration >> restartRespondsVariables [
 ]
 
 { #category : #'as yet unclassified' }
-GPAbstractCodeGeneratorConfiguration >> sumWeightsAll [ 
-	self subclassResponsibility 
-]
-
-{ #category : #accessing }
-GPAbstractCodeGeneratorConfiguration >> sumWeightsBinary [ 
-	self subclassResponsibility 
-]
-
-{ #category : #accessing }
-GPAbstractCodeGeneratorConfiguration >> sumWeightsUnary [ 
-	self subclassResponsibility 
-]
-
-{ #category : #'instance creation' }
-GPAbstractCodeGeneratorConfiguration >> unaryMethodNode [
-	| res t|
-	t := (self pickRandomMethod: (self unaryMethods ) with: (self randomElementOf: (0 to: (self sumWeightsUnary)) )).
-	res := GPNode new.
-	res printBlock: [ :children :context | '(',(children first printUsing: context), ' ', t asString , ')'].
-	res evaluationBlock: [ :children :context | (children first evaluateUsing: context) perform: t].
-	res type: 'unaryMethod'.
-	res name: t.
-	^ res
-]
-
-{ #category : #accessing }
-GPAbstractCodeGeneratorConfiguration >> unaryMethods [
+GPAbstractCodeGeneratorConfiguration >> sumWeightsAllMethods [ 
 	self subclassResponsibility 
 ]
 
