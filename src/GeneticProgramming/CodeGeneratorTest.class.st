@@ -16,8 +16,7 @@ CodeGeneratorTest >> setUp [
     c := RSChart new.
     d := RSLinePlot new. 
 	 q := Color.
-(q color: (q red)). "<== adding line"
-
+	(d color: (q red)). "<== adding line"
 	d x: x y: y.
 	c addPlot: d.
 	c build
