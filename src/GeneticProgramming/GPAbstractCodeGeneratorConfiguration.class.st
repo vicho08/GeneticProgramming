@@ -192,6 +192,11 @@ GPAbstractCodeGeneratorConfiguration >> restartRespondsVariables [
 	self subclassResponsibility
 ]
 
+{ #category : #'as yet unclassified' }
+GPAbstractCodeGeneratorConfiguration >> sumWeightsAll [ 
+	self subclassResponsibility 
+]
+
 { #category : #accessing }
 GPAbstractCodeGeneratorConfiguration >> sumWeightsBinary [ 
 	self subclassResponsibility 

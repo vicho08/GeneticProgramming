@@ -5,59 +5,46 @@ Class {
 		'variables',
 		'classes',
 		'types',
-		'unaryMethods',
-		'binaryMethods',
 		'codeBefore',
 		'codeAfter',
 		'respondsVariables',
 		'weightGen',
-		'sumWeightsUnary',
-		'sumWeightBinary'
+		'methods',
+		'sumWeightsAllMethods'
 	],
 	#category : #'GeneticProgramming-CodeGenerator'
 }
 
 { #category : #'as yet unclassified' }
-GPCodeGenerator >> acumulator: methods [
+GPCodeGenerator >> acumulator: ms [
 	|sum|
 	sum := 0.
-	methods do: [ :arr | sum := sum + (arr at:2 )].
+	ms do: [ :m | sum := sum + (m weight)].
 	^ sum
 ]
 
 { #category : #adding }
 GPCodeGenerator >> addWeights: aWeightGenerator [
 	weightGen := aWeightGenerator.
-	self assignWeights: (self unaryMethods).
-	self sumWeightsUnary: (self acumulator: unaryMethods).
-	self assignWeights: (self binaryMethods).
-	self sumWeightsBinary: (self acumulator: binaryMethods).
+	
+	self assignWeights: methods.
+	sumWeightsAllMethods := (self acumulator: methods).
 ]
 
 { #category : #'as yet unclassified' }
 GPCodeGenerator >> assignWeightTo: aMethod [
 	| w |
-	w:= (self weightGen) searchWeight: aMethod.
-	^{aMethod . w}
+	w:= (self weightGen) searchWeight: aMethod name.
+	aMethod weight: w.
 ]
 
 { #category : #'as yet unclassified' }
 GPCodeGenerator >> assignWeights: arrayMethods [
 	
-	arrayMethods doWithIndex: [ :method :i |
-		arrayMethods at: i put: (self assignWeightTo: method)
+	arrayMethods do: [ :method |
+		self assignWeightTo: method .
 		 ]
 
-]
-
-{ #category : #accessing }
-GPCodeGenerator >> binaryMethods [
-	^ binaryMethods
-]
-
-{ #category : #accessing }
-GPCodeGenerator >> binaryMethods: aNameMethods [
-	binaryMethods := aNameMethods 
 ]
 
 { #category : #accessing }
@@ -130,8 +117,10 @@ GPCodeGenerator >> distanceFromSolutionOf: individual [
 		'. "<== adding line"', String cr,
 		codeAfter.
 	
-	SystemAnnouncer uniqueInstance 
-		suspendAllWhileStoring: [ CodeGeneratorTest compile: codeToCompile ].	
+	[SystemAnnouncer uniqueInstance 
+		suspendAllWhileStoring: [ CodeGeneratorTest compile: codeToCompile ].				]
+	on: Exception
+	do: [ ^100 ].	
 	
 	eval := CodeGeneratorTest buildSuite run passed size.	
 	"penalty:=0."
@@ -203,19 +192,21 @@ GPCodeGenerator >> getClasses: aCollection [
 
 { #category : #'as yet unclassified' }
 GPCodeGenerator >> getMethods: aClasses [
-	|unaries binaries|
-	unaries:= OrderedCollection new.
-	binaries:= OrderedCollection new.
+	|ms|
+	ms := OrderedCollection new.
 	aClasses do: [ :c |
 		|aClass|
 		aClass := self getClass: c.
-		(aClass selectors) do: [ :method |
-			(self isKeywordMethod: method Class: aClass) ifTrue: [binaries add: method].
-			(self isUnaryMethod: method Class: aClass) ifTrue: [unaries add: method].
+		(aClass selectors) do: [ :m|
+			|method|
+			method := GPMethod new.
+			method name: m.
+			method numArgs: (aClass >> m) argumentNames size .
+			ms add: method.
 		 ].].
-	
-	self unaryMethods: unaries.
-	self binaryMethods: binaries. 
+
+		methods := ms.
+
 ]
 
 { #category : #'as yet unclassified' }
@@ -233,8 +224,6 @@ GPCodeGenerator >> getVariables: aCollection [
 GPCodeGenerator >> initialize [
 	super initialize.
 	self restartRespondsVariables.
-	self sumWeightsBinary: 0.
-	self sumWeightsUnary: 0.
 ]
 
 { #category : #testing }
@@ -307,26 +296,6 @@ Set the test for fitness. Like: 'assert aKey equals: n'
 ]
 
 { #category : #accessing }
-GPCodeGenerator >> sumWeightsBinary [
-	^sumWeightBinary
-]
-
-{ #category : #accessing }
-GPCodeGenerator >> sumWeightsBinary: aInt [
-	sumWeightBinary := aInt
-]
-
-{ #category : #accessing }
-GPCodeGenerator >> sumWeightsUnary [
-	^sumWeightsUnary 
-]
-
-{ #category : #accessing }
-GPCodeGenerator >> sumWeightsUnary: aInt [
-	sumWeightsUnary := aInt
-]
-
-{ #category : #accessing }
 GPCodeGenerator >> types [
 	^types
 ]
@@ -334,16 +303,6 @@ GPCodeGenerator >> types [
 { #category : #accessing }
 GPCodeGenerator >> types: aDictionary [
 	types:= aDictionary 
-]
-
-{ #category : #accessing }
-GPCodeGenerator >> unaryMethods [
-	^ unaryMethods
-]
-
-{ #category : #accessing }
-GPCodeGenerator >> unaryMethods: aNameMethods [
-	unaryMethods := aNameMethods 
 ]
 
 { #category : #accessing }
