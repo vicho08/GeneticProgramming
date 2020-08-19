@@ -92,15 +92,27 @@ GPCodeGenerator >> codeBefore: aCode [
 
 { #category : #initialization }
 GPCodeGenerator >> codeBefore: aCode codeAfter: anOtherCode [
-	|names|
+	|visitor|
+	
 	self codeBefore: aCode.
 	self codeAfter: anOtherCode.
-	names := self extractVariableNames: aCode.
-	names addAll: (self extractVariableNames: anOtherCode).
-	self variables: (self getVariables: names).
-	self classes: (self getClasses: names).
+	
+	visitor  := self createVisitor: aCode , ' ' , anOtherCode .
+	
+	self variables: (visitor variableNames).
+	self classes: (visitor classNames).
 	
 	self getMethods: classes.
+]
+
+{ #category : #'as yet unclassified' }
+GPCodeGenerator >> createVisitor: aCode [ 
+
+	|ast v|
+	ast := RBParser parseExpression: aCode.
+	v := ExtractVariableNameVisitor new.
+	ast acceptVisitor: v.
+	^ v
 ]
 
 { #category : #operations }

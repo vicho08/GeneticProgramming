@@ -30,6 +30,7 @@ ExtractVariableNameVisitor >> initialize [
 
 { #category : #boolean }
 ExtractVariableNameVisitor >> isClass: maybeClassSymbol [
+"return true if the symbol is a Class"
 	^ (self allClasses) includes: (OpalCompiler new source: maybeClassSymbol; evaluate)
 ]
 
