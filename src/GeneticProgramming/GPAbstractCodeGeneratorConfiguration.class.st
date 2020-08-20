@@ -41,10 +41,10 @@ GPAbstractCodeGeneratorConfiguration >> createNewIndividual [
 		rootNode := self returnNode.
 		m := self newMethod.
 		rootNode addChild: m.
-		(self createNewIndividualRoot: m depth: 2).
+		(self createNewIndividualRoot: m depth: 3).
 		^ rootNode]
 	 ifFalse: [ rootNode := self newMethod ].
-	self createNewIndividualRoot: rootNode depth: 2.
+	self createNewIndividualRoot: rootNode depth: 3.
 	^ rootNode
 ]
 
@@ -62,7 +62,7 @@ var 			:= x | y | ...
 unaryMethod 	:= sqrt | squared | ...
 binaryMethod:= + | - | ...
 "
-	| f c n| 
+	| f n| 
 	n := rootNode type. "number of args of the method"
 	
 	rootNode addChild: (self respondsMethod: rootNode). "object that call the method"
@@ -74,9 +74,9 @@ binaryMethod:= + | - | ...
 			^self].
 		
 	1 to: n do: [ :i |
-		c := self randomElementOf: (1 to: 2).
-		(c = 1) ifTrue: [ rootNode addChild: self newTerminalVariable ].
-		(c = 2) ifTrue: [ 
+		((self randomElementOf: (1 to: 10)) <3)
+		ifTrue: [ rootNode addChild: self newTerminalVariable ]
+		ifFalse: [ 
 			f := self methodNode.
 			rootNode addChild: f.
 			self createNewIndividualRoot: f depth: depth - 1  ]. ]

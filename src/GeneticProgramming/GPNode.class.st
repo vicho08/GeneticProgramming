@@ -69,6 +69,16 @@ GPNode >> children: someNodes [
 ]
 
 { #category : #operations }
+GPNode >> crossOverTwoChildrenWith: anotherNode using: random [
+	"This method should be called with two root nodes"
+
+	| index1 index2 |
+	index1:= (random nextInt: self numberOfNodes - 1) + 1.
+	index2:= (random nextInt: anotherNode numberOfNodes - 1) + 1.
+	^ { self crossOverWith: anotherNode at: index1 at: index2 . anotherNode crossOverWith: self at: index2 at: index1}
+]
+
+{ #category : #operations }
 GPNode >> crossOverWith: anotherNode [
 	"This method should be called with two root nodes"
 	^ self crossOverWith: anotherNode at: (self numberOfNodes - 1) atRandom + 1 at: (anotherNode numberOfNodes - 1) atRandom + 1
@@ -80,6 +90,7 @@ GPNode >> crossOverWith: anotherNode at: index1 at: index2 [
 	| copy |
 	copy := self deepCopy.
 	copy atIndex: index1 put: (anotherNode atIndex: index2) deepCopy.
+	copy fitnessCache: nil.
 	^ copy
 ]
 
@@ -98,6 +109,15 @@ GPNode >> deepCopy [
 	| c |
 	c := GPNode new type: type; evaluationBlock: evaluationBlock; printBlock: printBlock.
 	self children do: [ :child |
+		c addChild: child deepCopy ].
+	^ c
+]
+
+{ #category : #operations }
+GPNode >> deepCopy: ind [
+	| c |
+	c := GPNode new type: (ind type); evaluationBlock: (ind evaluationBlock); printBlock: (ind printBlock).
+	ind children do: [ :child |
 		c addChild: child deepCopy ].
 	^ c
 ]
