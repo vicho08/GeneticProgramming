@@ -10,7 +10,12 @@ Class {
 		'respondsVariables',
 		'weightGen',
 		'methods',
-		'sumWeightsAllMethods'
+		'sumWeightsAllMethods',
+		'mainPackage',
+		'mainClass',
+		'nameMethod',
+		'variablesMethod',
+		'testClass'
 	],
 	#category : #'GeneticProgramming-CodeGenerator'
 }
@@ -79,17 +84,41 @@ GPCodeGenerator >> codeBefore: aCode [
 
 { #category : #initialization }
 GPCodeGenerator >> codeBefore: aCode codeAfter: anOtherCode [
-	|visitor|
+	
+	|visitor spy|
 	
 	self codeBefore: aCode.
 	self codeAfter: anOtherCode.
 	
 	visitor  := self createVisitor: aCode , ' ' , anOtherCode .
+	spy      := self createSpy: aCode, ' ' , anOtherCode .
 	
 	self variables: (visitor variableNames).
-	self classes: (visitor classNames).
+	self classes: (spy allClasses).
 	
 	self getMethods: classes.
+]
+
+{ #category : #initialization }
+GPCodeGenerator >> codeBefore: aCode codeAfter: anOtherCode onPackageNamed: aPackage [
+	|visitor spy|
+	
+	self codeBefore: aCode.
+	self codeAfter: anOtherCode.
+	mainPackage := aPackage.
+	
+	visitor  := self createVisitor: aCode , ' ' , anOtherCode .
+	spy := self createSpy: aCode , ' ' , anOtherCode.
+	self variables: (visitor variableNames).
+	self classes: (spy allClassesAsDictionary).
+	
+	self getMethods: classes.
+]
+
+{ #category : #'as yet unclassified' }
+GPCodeGenerator >> createSpy: aCode [ 
+
+	^ (Dep profile: [aCode] onPackageNamed: mainPackage ).
 ]
 
 { #category : #'as yet unclassified' }
@@ -110,19 +139,19 @@ GPCodeGenerator >> distanceFromSolutionOf: individual [
 	|codeToCompile eval "penalty penalty2"|
 	individual fitnessCache ifNotNil: [ ^ individual fitnessCache ].
 	codeToCompile :=
-		'setUp', String cr,
-		'|x y d q|', String cr,
+		nameMethod , String cr,
+		variablesMethod , String cr,
 		codeBefore, String cr,
 		(individual print),
 		'. "<== adding line"', String cr,
 		codeAfter.
 	
 	[SystemAnnouncer uniqueInstance 
-		suspendAllWhileStoring: [ CodeGeneratorTest compile: codeToCompile ].				]
+		suspendAllWhileStoring: [ mainClass compile: codeToCompile ].				]
 	on: Exception
 	do: [ ^100 ].	
 	
-	eval := CodeGeneratorTest buildSuite run passed size.	
+	eval := testClass  buildSuite run passed size.	
 	"penalty:=0."
 	"penalty error eval"
 	"eval = 'error' ifTrue: [ penalty:= 10000 ].
@@ -159,35 +188,9 @@ GPCodeGenerator >> extractVariableNames: code [
 ]
 
 { #category : #'as yet unclassified' }
-GPCodeGenerator >> generateWithVariables: vars andMessageNames: namesMethods [
-"save variables set and methos set"
-	self variables: vars.
-	self parserMethods: namesMethods.
+GPCodeGenerator >> getClass: aClass [
 
-]
-
-{ #category : #'as yet unclassified' }
-GPCodeGenerator >> generateWithVariables: vars unaryMethods: unaryMethods binaryMethods: binaryMethods [
-"save variables set and methos set"
-	self variables: vars.
-	self unaryMethods: unaryMethods.
-	self binaryMethods: binaryMethods.
-
-]
-
-{ #category : #'as yet unclassified' }
-GPCodeGenerator >> getClass: aSymbolClass [
-	^ OpalCompiler new source: aSymbolClass; evaluate.
-]
-
-{ #category : #'as yet unclassified' }
-GPCodeGenerator >> getClasses: aCollection [
-	|answer|
-	answer := OrderedCollection new.
-	aCollection 
-			do: [ :aClass| 
-			(self isClass: aClass) ifTrue: [ answer add: aClass ] ].
-	^ answer removeDuplicates
+	^ OpalCompiler new source: (aClass className ); evaluate.
 ]
 
 { #category : #'as yet unclassified' }
@@ -196,7 +199,7 @@ GPCodeGenerator >> getMethods: aClasses [
 	ms := OrderedCollection new.
 	aClasses do: [ :c |
 		|aClass|
-		aClass := self getClass: c.
+		aClass := self getClass: c.		
 		(aClass selectors) do: [ :m|
 			|method|
 			method := GPMethod new.
@@ -207,17 +210,6 @@ GPCodeGenerator >> getMethods: aClasses [
 
 		methods := ms.
 
-]
-
-{ #category : #'as yet unclassified' }
-GPCodeGenerator >> getVariables: aCollection [
-|answer|
-	answer:= OrderedCollection new.
-	aCollection 
-		do: [ :aVariable | 
-			(self isClass: aVariable)
-				ifFalse: [ answer add: aVariable ] ].
-	^ answer removeDuplicates
 ]
 
 { #category : #initialization }
@@ -235,43 +227,24 @@ GPCodeGenerator >> isClass: aSymbol [
 						evaluate)
 ]
 
-{ #category : #testing }
-GPCodeGenerator >> isKeywordMethod: aMethod Class: aClass [
-	^(aClass >> aMethod) argumentNames size = 1
-
-]
-
-{ #category : #testing }
-GPCodeGenerator >> isUnaryMethod: aMethod Class: aClass [
-	^(aClass >> aMethod) argumentNames size = 0
-
-]
-
 { #category : #accessing }
 GPCodeGenerator >> methods [ 
 	^methods
 ]
 
+{ #category : #accessing }
+GPCodeGenerator >> nameClass: aClass [
+	mainClass := aClass
+]
+
+{ #category : #accessing }
+GPCodeGenerator >> nameMethod: aNameMethod [
+	nameMethod := aNameMethod
+]
+
 { #category : #hooks }
 GPCodeGenerator >> numberOfGenerations [
 	^ 30
-]
-
-{ #category : #'as yet unclassified' }
-GPCodeGenerator >> parserMethods: anArray [
-	| d numArgs unary binary|
-	d := Dictionary newFrom: anArray.
-	unary:= OrderedCollection new.
-	binary := OrderedCollection new.
-		
-	d doWithIndex: [ :dd :i |
-		numArgs:= ((d values at: i) >> (d keys at: i)) argumentNames size.
-		numArgs = 0 ifTrue: [unary add: (d keys at:i)]. 
-		numArgs = 1 ifTrue: [binary add: (d keys at: i)]].
-	
-	self unaryMethods: unary.
-	self binaryMethods: binary.
-	
 ]
 
 { #category : #'as yet unclassified' }
@@ -292,6 +265,11 @@ GPCodeGenerator >> setInitialValues: arrayValues [
 	self dictionary: dict.
 ]
 
+{ #category : #accessing }
+GPCodeGenerator >> setOfVariables: aSetOfVariables [
+	variablesMethod := aSetOfVariables 
+]
+
 { #category : #initialization }
 GPCodeGenerator >> setTest: aKey value: n [
 "
@@ -303,6 +281,11 @@ Set the test for fitness. Like: 'assert aKey equals: n'
 { #category : #accessing }
 GPCodeGenerator >> sumWeightsAllMethods [
 	^sumWeightsAllMethods 
+]
+
+{ #category : #'as yet unclassified' }
+GPCodeGenerator >> testing: aTestClass [
+	testClass:= aTestClass 
 ]
 
 { #category : #accessing }

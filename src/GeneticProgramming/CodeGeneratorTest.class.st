@@ -9,7 +9,7 @@ Class {
 
 { #category : #running }
 CodeGeneratorTest >> setUp [
-|x y d q|
+|x y d|
 
 	 x := -3.14 to: 3.14 by: 0.1.
     y := x cos.
@@ -18,7 +18,7 @@ CodeGeneratorTest >> setUp [
 	 d color: Color red.
 	 d x: x y: y.
 	
-(d color: (d color: c ) ). "<== adding line"
+(y negative). "<== adding line"
 c build
 ]
 

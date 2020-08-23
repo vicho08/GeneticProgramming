@@ -36,7 +36,7 @@ GPAbstractCodeGeneratorConfiguration >> createNewIndividual [
 	"
 	
 	| rootNode m|
-	((self randomElementOf: (0 to: 10) )< 2)
+	((self randomElementOf: (0 to: 10) )< -1)
 	 ifTrue: [  
 		rootNode := self returnNode.
 		m := self newMethod.
