@@ -110,6 +110,7 @@ GPCodeGenerator >> codeBefore: aCode codeAfter: anOtherCode onPackageNamed: aPac
 	visitor  := self createVisitor: aCode , ' ' , anOtherCode .
 	spy := self createSpy: aCode , ' ' , anOtherCode.
 	self variables: (visitor variableNames).
+	variables add: #self.
 	self classes: (spy allClassesAsDictionary).
 	
 	self getMethods: classes.
@@ -136,7 +137,7 @@ GPCodeGenerator >> distanceFromSolutionOf: individual [
 	"This method has to return a number that describes how close the individual is to the solution.
 	If this returns 0, then the individual is a perfect match
 	"
-	|codeToCompile eval "penalty penalty2"|
+	|codeToCompile eval penalty " penalty2"|
 	individual fitnessCache ifNotNil: [ ^ individual fitnessCache ].
 	codeToCompile :=
 		nameMethod , String cr,
@@ -155,13 +156,13 @@ GPCodeGenerator >> distanceFromSolutionOf: individual [
 	"penalty:=0."
 	"penalty error eval"
 	"eval = 'error' ifTrue: [ penalty:= 10000 ].
-	
-	penalty2 := individual numberOfNodes <= 15
+	"
+	penalty := individual numberOfNodes <= 15
 		ifTrue: [ 0 ]
-		ifFalse: [ 10000]."
+		ifFalse: [ 10000].
 
 	"the fitness is the difference between associated value in the dictionary and the expected value"
-	individual fitnessCache: (4 - eval) abs.
+	individual fitnessCache: ((4 - eval) abs) + penalty.
 	^ individual fitnessCache
 ]
 
