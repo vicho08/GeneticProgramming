@@ -147,10 +147,14 @@ GPCodeGenerator >> distanceFromSolutionOf: individual [
 		'. "<== adding line"', String cr,
 		codeAfter.
 	
+	(codeToCompile  findString: 'self ', nameMethod) >0 
+	ifTrue:[^1000].
+	
 	[SystemAnnouncer uniqueInstance 
 		suspendAllWhileStoring: [ mainClass compile: codeToCompile ].				]
 	on: Exception
 	do: [ ^100 ].	
+	
 	
 	eval := testClass  buildSuite run passed size.	
 	"penalty:=0."
