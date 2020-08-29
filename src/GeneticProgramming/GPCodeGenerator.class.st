@@ -15,7 +15,8 @@ Class {
 		'mainClass',
 		'nameMethod',
 		'variablesMethod',
-		'testClass'
+		'testClass',
+		'packageTesting'
 	],
 	#category : #'GeneticProgramming-CodeGenerator'
 }
@@ -137,7 +138,7 @@ GPCodeGenerator >> distanceFromSolutionOf: individual [
 	"This method has to return a number that describes how close the individual is to the solution.
 	If this returns 0, then the individual is a perfect match
 	"
-	|codeToCompile eval penalty " penalty2"|
+	|codeToCompile eval penalty classesTesting|
 	individual fitnessCache ifNotNil: [ ^ individual fitnessCache ].
 	codeToCompile :=
 		nameMethod , String cr,
@@ -156,17 +157,17 @@ GPCodeGenerator >> distanceFromSolutionOf: individual [
 	do: [ ^100 ].	
 	
 	
-	eval := testClass  buildSuite run passed size.	
-	"penalty:=0."
-	"penalty error eval"
-	"eval = 'error' ifTrue: [ penalty:= 10000 ].
-	"
+	eval := 0.
+	classesTesting := packageTesting classes.
+	
+	classesTesting do: [ :class |
+		eval := eval + (class buildSuite run passed size) ].
 	penalty := individual numberOfNodes <= 15
 		ifTrue: [ 0 ]
 		ifFalse: [ 10000].
 
 	"the fitness is the difference between associated value in the dictionary and the expected value"
-	individual fitnessCache: ((4 - eval) abs) + penalty.
+	individual fitnessCache: ((59 - eval) abs) + penalty.
 	^ individual fitnessCache
 ]
 
@@ -250,6 +251,16 @@ GPCodeGenerator >> nameMethod: aNameMethod [
 { #category : #hooks }
 GPCodeGenerator >> numberOfGenerations [
 	^ 30
+]
+
+{ #category : #'as yet unclassified' }
+GPCodeGenerator >> packageTesting [
+	^ packageTesting
+]
+
+{ #category : #'as yet unclassified' }
+GPCodeGenerator >> packageTesting: aString [
+	packageTesting:= (RPackageOrganizer default packageNamed: aString).
 ]
 
 { #category : #'as yet unclassified' }

@@ -51,29 +51,21 @@ GPAbstractCodeGeneratorConfiguration >> createNewIndividual [
 { #category : #'private-operation' }
 GPAbstractCodeGeneratorConfiguration >> createNewIndividualRoot: rootNode depth: depth [
 "
-create a simple assigment node:  var := expr 
-
-assigment 	:= var : expr
-expr 			:= unary | binary | var
-unary 			:= expr : unaryMethod
-binary 		:= expr : binaryMethod : expr
-
-var 			:= x | y | ...
-unaryMethod 	:= sqrt | squared | ...
-binaryMethod:= + | - | ...
+expr 			:= return | call
+return 		:= ^ call
+call  			:= ((call) method [: args]  | Obj method [:args] 
+args 			:= call | Obj
 "
-	| f n| 
+	|f n| 
 	n := rootNode type. "number of args of the method"
 	
-	rootNode addChild: (self respondsMethod: rootNode). "object that call the method"
-	
 	(depth = 1) 
-		ifTrue: [ 1 to: n do: 
+		ifTrue: [ 0 to: n do: 
 			[ :i | 
 			rootNode addChild: self newTerminalVariable].
 			^self].
 		
-	1 to: n do: [ :i |
+	0 to: n do: [ :i |
 		((self randomElementOf: (1 to: 10)) <3)
 		ifTrue: [ rootNode addChild: self newTerminalVariable ]
 		ifFalse: [ 
