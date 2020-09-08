@@ -4,40 +4,42 @@
 
 En este primer acercamiento, se realizan experimentos sobre programas escritos en Pharo. Se buscan parches simples (agregar una línea de código nueva). 
 
+* Requerimientos
+
+Para realizar exitosamente el experimento se debe contar con Roassal3 y Spy instalados en la imagen de Pharo donde se trabaja. 
+
 * Ejemplo
 
-Considerar el siguiente programa que pasa exitosamente 4 tests. Al eliminar la linea que contiene `c addPlot: d`, el programa sólo aprueba 1 test.
+Considerar el siguiente método. El algoritmo debe ser capaz de encontrar el cuerpo de este método de una sola línea `^ self definedValuesY`.
 
-<pre><code>setUp
-    |x y c d|
-    x := -3.14 to: 3.14 by: 0.1.
-    y := x cos.
-    c := RSChart new.
-    d := RSLinePlot new. 
-    d color: Color red.
-    d x: x y: y.
-    c addPlot: d. "<= lost line"
-    c build
+<pre><code>minValueY
+	"Return the minimum Y value of the plot, excluding NaN and infinite"
+	
+	^ self definedValuesY min  "<= lost line" 
 </code></pre>
 	    
-Luego GP, se encarga de buscar la línea faltante tomando el siguiente conjunto de entrada. Asumimos la ubicación del lugar donde se debe insertar el parche (usando `codeBefore:` y `codeAfter:`. Luego se entregan los tipos de las variables, y la relevancia de los métodos a insertar a través de un sistema de pesos, pues una inserción al azar no es óptima.
+GP necesita un conjunto de entrada que defina este problema en particular. Se asume la ubicación del lugar donde se debe insertar el parche (usando `codeBefore:` y `codeAfter:`. Además de señalar el paquete donde vive el método.
 
+<pre><code>g:= GPCodeGenerator new codeBefore: '' codeAfter: '' onPackageNamed: 'Roassal3-Chart'.</code></pre>
+
+Para evitar problemas en el futuro, se guarda el código original del método, para recompilar luego de usar el algoritmo. 
+
+<pre><code>originalSource := (RSAbstractPlot>>#minValueY) getSourceFromFile. </code></pre>
+
+Se deben señalar el nombre del método, el nombre de la clase y el conjunto de variables participantes (las variables de instancia se obtienen de la clase). 
+
+<pre><code> g nameMethod: 'minValueY'; nameClass: RSAbstractPlot; setOfVariables: ''. </code></pre>
+
+También, es necesario definir el conjunto de tests que evaluarán los requerimientos necesarios que debe cumplir el método.
+
+<pre><code>  g packageTesting: 'Roassal3-Chart-Tests'. </code></pre>
+
+El algoritmo utiliza un sistema de pesos para dar mayor importancia a ciertos métodos del universo de búsqueda. Se pueden probar distintas variantes de este sistema, que por ahora, se mantiene constante una vez iniciado el algoritmo y que se señala manualmente por el usuario.
 <pre><code>
-g := GPCodeGenerator new codeBefore: 
-'x := -3.14 to: 3.14 by: 0.1.
- y := x cos.
- c := RSChart new.
- d := RSLinePlot new. 
- d color: Color red.
- d x: x y: y.' 
-codeAfter: 'c build'.
-
-g types: (Dictionary newFrom: { #x -> Array new . #y -> Array new . #d -> RSLinePlot new . #c -> RSChart new}).
-
-g addWeights: (WeightGenerator new initialWeights: { #addPlot: -> 90. #color: -> 50 . #_default_ -> 1 }).
+g addWeights: (WeightGenerator new initialWeights: {#min -> 200. #definedValuesY -> 250 .#_default_ -> 1}).
 </code></pre>
 
-Después para correr el algoritmo agregamos el siguiente código:
+Después para correr el algoritmo y seleccionar el mejor individuo, agregamos el siguiente código:
 
 <pre><code>
 e := GPEngine new.
@@ -46,11 +48,15 @@ e execute.
 i:= e pickBestIndividual.
 </code></pre>
 
+Finalmente para recompilar el método con su código original: 
+
+<pre><code> RSAbstractPlot compile: originalSource. </code></pre>
+
 Finalmente para ejecutar, basta con seleccionar todo el código y teclear `ctrl + G`
 
 * Resultados
 
-	- Código generado: `c addPlot: d`
+	- Código generado: `minValueY`
 	
 	![alt text](https://github.com/vicho08/GeneticProgramming/blob/master/images/fitnessTime.png "Evolución fitness durante el avance del programa genético")
 
