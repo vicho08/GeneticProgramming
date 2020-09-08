@@ -56,9 +56,9 @@ Finalmente para ejecutar, basta con seleccionar todo el código y teclear `ctrl 
 
 * Resultados
 
-	- Código generado: `minValueY`
+	- Código generado: `^ self definedValuesY min `. 
 	
-	![alt text](https://github.com/vicho08/GeneticProgramming/blob/master/images/fitnessTime.png "Evolución fitness durante el avance del programa genético")
+	![alt text](https://github.com/vicho08/GeneticProgramming/blob/master/images/fitnessTime02.png "Evolución fitness durante el avance del programa genético")
 
 
 
