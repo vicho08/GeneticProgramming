@@ -35,21 +35,22 @@ GPAbstractCodeGeneratorConfiguration >> createNewIndividual [
 	b
 	"
 	
-	| rootNode m|
-	((self randomElementOf: (0 to: 10) )< 5)
-	 ifTrue: [  
+	| rootNode m c|
+	c:= self randomElementOf: (1 to: 3).
+	 (c=1) ifTrue: [  
 		rootNode := self returnNode.
 		m := self newMethod.
 		rootNode addChild: m.
 		(self createNewIndividualRoot: m depth: 3).
-		^ rootNode]
-	 ifFalse: [ rootNode := self newMethod ].
+		^ rootNode].
+	 (c=2) ifTrue: [ rootNode := self newMethod ].
+	(c=3) ifTrue: [ rootNode := self assigmentNode  ].  
 	self createNewIndividualRoot: rootNode depth: 3.
 	^ rootNode
 ]
 
 { #category : #'private-operation' }
-GPAbstractCodeGeneratorConfiguration >> createNewIndividualRoot: rootNode depth: depth [
+GPAbstractCodeGeneratorConfiguration >> createNewIndividualRoot: rootNode depth: depth [ 
 "
 expr 			:= return | call
 return 		:= ^ call
@@ -58,6 +59,9 @@ args 			:= call | Obj
 "
 	|f n| 
 	n := rootNode type. "number of args of the method"
+	
+	(n = 'assigment') ifTrue: [ n:= 2.
+		rootNode addChild: self newTerminalVariableWithoutSelf].
 	
 	(depth = 1) 
 		ifTrue: [ 0 to: n do: 
@@ -152,6 +156,19 @@ GPAbstractCodeGeneratorConfiguration >> newTerminalRespondsVariable [
 GPAbstractCodeGeneratorConfiguration >> newTerminalVariable [
 	| res t|
 	t := self randomElementOf: (self variables).
+	res := GPNode new.
+	res printBlock: [ :children :context | t asString ].
+	res evaluationBlock: [ :children :context | context at: t]  .
+	res type: 'variable'.
+	^ res
+]
+
+{ #category : #'instance creation' }
+GPAbstractCodeGeneratorConfiguration >> newTerminalVariableWithoutSelf [
+	| res t|
+	(self variables) remove: #self.
+	t := self randomElementOf: (self variables).
+	(self variables) add: #self.
 	res := GPNode new.
 	res printBlock: [ :children :context | t asString ].
 	res evaluationBlock: [ :children :context | context at: t]  .

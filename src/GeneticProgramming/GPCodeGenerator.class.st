@@ -143,6 +143,7 @@ GPCodeGenerator >> distanceFromSolutionOf: individual [
 	codeToCompile :=
 		nameMethod , String cr,
 		variablesMethod , String cr,
+		"'Halt onCount: 1000.' , String cr, "
 		codeBefore, String cr,
 		(individual print),
 		'. "<== adding line"', String cr,
@@ -155,20 +156,35 @@ GPCodeGenerator >> distanceFromSolutionOf: individual [
 		suspendAllWhileStoring: [ mainClass compile: codeToCompile ].				]
 	on: Exception
 	do: [ ^100 ].	
-	
+	penalty := individual numberOfNodes <= 15
+		ifTrue: [ 0 ]
+		ifFalse: [ 1000].
+
 	
 	eval := 0.
 	classesTesting := packageTesting classes.
 	
-	classesTesting do: [ :class |
-		eval := eval + (class buildSuite run passed size) ].
-	penalty := individual numberOfNodes <= 15
-		ifTrue: [ 0 ]
-		ifFalse: [ 10000].
+	"classesTesting do: [ :class |
+		[|running|
+		running:= class buildSuite run.
+		eval := eval + (running passed size) ] on: Halt do: [^1000]]."
 
+	classesTesting do: [ :class |
+		|running p|
+		p := [ class buildSuite run.] newProcess.
+		p resume.
+		(Delay forSeconds: 0.5) wait.
+			p isTerminated 
+			ifTrue: [
+				running:= class buildSuite run.
+				eval := eval + (running passed size)]
+			ifFalse: [ 
+				self inform: 'Not terminated'. 
+    			p terminate ]].
+	
 	"the fitness is the difference between associated value in the dictionary and the expected value"
 	individual fitnessCache: ((59 - eval) abs) + penalty.
-	^ individual fitnessCache
+	^ individual fitnessCache 
 ]
 
 { #category : #example }
@@ -240,7 +256,8 @@ GPCodeGenerator >> methods [
 
 { #category : #accessing }
 GPCodeGenerator >> nameClass: aClass [
-	mainClass := aClass
+	mainClass := aClass.
+	variables addAll: (aClass instVarNames)
 ]
 
 { #category : #accessing }
