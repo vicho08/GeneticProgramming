@@ -44,12 +44,12 @@ GPEngine >> createNewGeneration [
 		newInds := i1 crossOverTwoChildrenWith: i2 using: configuration random.
 		newInd := newInds at: 1.
 		newInd2 := newInds at: 2.
-		((configuration randomInt: 100) > 90)
+		((configuration randomInt: 100) > 85)
 			ifTrue: [ newInd := self mutation: newInd ].
-		((configuration randomInt: 100) > 90)
+		((configuration randomInt: 100) > 85)
 			ifTrue: [ newInd2 := self mutation: newInd2 ].
 		newPopulation add: newInd.
-		newPopulation add: newInd2  
+		newPopulation add: newInd2.  
 	].
 	population := newPopulation.
 	fitnessOfPopulation := self totalFitnessOfGeneration 

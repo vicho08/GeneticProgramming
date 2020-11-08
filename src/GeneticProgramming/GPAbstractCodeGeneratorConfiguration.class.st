@@ -36,15 +36,15 @@ GPAbstractCodeGeneratorConfiguration >> createNewIndividual [
 	"
 	
 	| rootNode m c|
-	c:= self randomElementOf: (1 to: 3).
-	 (c=1) ifTrue: [  
+	c:= self randomElementOf: (1 to: 10).
+	 (c<5) ifTrue: [  
 		rootNode := self returnNode.
 		m := self newMethod.
 		rootNode addChild: m.
 		(self createNewIndividualRoot: m depth: 3).
 		^ rootNode].
-	 (c=2) ifTrue: [ rootNode := self newMethod ].
-	(c=3) ifTrue: [ rootNode := self assigmentNode  ].  
+	 (c>4 and: c<9) ifTrue: [ rootNode := self newMethod ].
+	(c> 8 and: c <11) ifTrue: [ rootNode := self assigmentNode  ].  
 	self createNewIndividualRoot: rootNode depth: 3.
 	^ rootNode
 ]
@@ -58,9 +58,9 @@ call  			:= ((call) method [: args]  | Obj method [:args]
 args 			:= call | Obj
 "
 	|f n| 
-	n := rootNode type. "number of args of the method"
+	n := rootNode type. "number of args of the method or assigment"
 	
-	(n = 'assigment') ifTrue: [ n:= 2.
+	(n = 'assigment') ifTrue: [ n:= 0.
 		rootNode addChild: self newTerminalVariableWithoutSelf].
 	
 	(depth = 1) 

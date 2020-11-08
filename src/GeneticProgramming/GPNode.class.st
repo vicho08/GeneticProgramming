@@ -68,6 +68,18 @@ GPNode >> children: someNodes [
 	children := someNodes
 ]
 
+{ #category : #'as yet unclassified' }
+GPNode >> countCallMethods [
+	|total|
+	total:= 0.
+	(self type isNumber) ifTrue: [ total := total + 1 ].
+	
+	(self children) do: [ :child |
+		total := total + child countCallMethods. ].
+	
+	^total
+]
+
 { #category : #operations }
 GPNode >> crossOverTwoChildrenWith: anotherNode using: random [
 	"This method should be called with two root nodes"
@@ -75,13 +87,25 @@ GPNode >> crossOverTwoChildrenWith: anotherNode using: random [
 	| index1 index2 |
 	index1:= (random nextInt: self numberOfNodes - 1) + 1.
 	index2:= (random nextInt: anotherNode numberOfNodes - 1) + 1.
+	[self verifyAssigment: anotherNode at: index1  at: index2 ]
+	whileFalse: [
+		index2 := (random nextInt: anotherNode numberOfNodes - 1) + 1.].
+	[anotherNode verifyAssigment: self at: index2  at: index1 ]
+	whileFalse: [
+		index1 :=  (random nextInt: self numberOfNodes - 1) + 1].
 	^ { self crossOverWith: anotherNode at: index1 at: index2 . anotherNode crossOverWith: self at: index2 at: index1}
 ]
 
 { #category : #operations }
 GPNode >> crossOverWith: anotherNode [
 	"This method should be called with two root nodes"
-	^ self crossOverWith: anotherNode at: (self numberOfNodes - 1) atRandom + 1 at: (anotherNode numberOfNodes - 1) atRandom + 1
+	|index1 index2|
+	index1 := (self numberOfNodes - 1) atRandom + 1 .
+	index2 := (anotherNode numberOfNodes - 1) atRandom + 1.
+	[self verifyAssigment: anotherNode at: index1  at: index2 ]
+	whileFalse: [
+		index2 := (anotherNode numberOfNodes - 1) atRandom + 1.].
+	^ self crossOverWith: anotherNode at: index1 at: index2
 ]
 
 { #category : #operations }
@@ -240,6 +264,19 @@ GPNode >> type [
 { #category : #accessing }
 GPNode >> type: aSymbol [
 	type := aSymbol
+]
+
+{ #category : #'as yet unclassified' }
+GPNode >> verifyAssigment: anotherNode at: index1 at: index2 [
+	
+	((self type = 'assigment') and: (index1 = 2)) 
+	ifTrue: [
+		|t ifNotSelf|
+		t := (anotherNode atIndex: index2) type.
+		ifNotSelf := (anotherNode print) ~= 'self'.
+		^ (t = 'variable' and: ifNotSelf)
+		 ].
+	^ true 
 ]
 
 { #category : #accessing }

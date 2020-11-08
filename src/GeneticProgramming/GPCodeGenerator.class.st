@@ -2,6 +2,7 @@ Class {
 	#name : #GPCodeGenerator,
 	#superclass : #GPAbstractCodeGeneratorConfiguration,
 	#instVars : [
+		'args',
 		'variables',
 		'classes',
 		'types',
@@ -141,7 +142,7 @@ GPCodeGenerator >> distanceFromSolutionOf: individual [
 	|codeToCompile eval penalty classesTesting|
 	individual fitnessCache ifNotNil: [ ^ individual fitnessCache ].
 	codeToCompile :=
-		nameMethod , String cr,
+		(self setContractMethod ) , String cr,
 		variablesMethod , String cr,
 		"'Halt onCount: 1000.' , String cr, "
 		codeBefore, String cr,
@@ -149,8 +150,6 @@ GPCodeGenerator >> distanceFromSolutionOf: individual [
 		'. "<== adding line"', String cr,
 		codeAfter.
 	
-	(codeToCompile  findString: 'self ', nameMethod) >0 
-	ifTrue:[^1000].
 	
 	[SystemAnnouncer uniqueInstance 
 		suspendAllWhileStoring: [ mainClass compile: codeToCompile ].				]
@@ -159,6 +158,10 @@ GPCodeGenerator >> distanceFromSolutionOf: individual [
 	penalty := individual numberOfNodes <= 15
 		ifTrue: [ 0 ]
 		ifFalse: [ 1000].
+		
+	penalty := individual allLeaves size <= 4
+		ifTrue: [ penalty + 0 ]
+		ifFalse: [ penalty + 1000].
 
 	
 	eval := 0.
@@ -182,7 +185,7 @@ GPCodeGenerator >> distanceFromSolutionOf: individual [
 				self inform: 'Not terminated'. 
     			p terminate ]].
 	
-	"the fitness is the difference between associated value in the dictionary and the expected value"
+	"the fitness is the difference between total tests and passed tests"
 	individual fitnessCache: ((59 - eval) abs) + penalty.
 	^ individual fitnessCache 
 ]
@@ -238,6 +241,7 @@ GPCodeGenerator >> getMethods: aClasses [
 GPCodeGenerator >> initialize [
 	super initialize.
 	self restartRespondsVariables.
+	SettersMethod initialize.
 ]
 
 { #category : #testing }
@@ -254,10 +258,28 @@ GPCodeGenerator >> methods [
 	^methods
 ]
 
+{ #category : #'as yet unclassified' }
+GPCodeGenerator >> nameClass [ 
+	^ mainClass
+]
+
 { #category : #accessing }
 GPCodeGenerator >> nameClass: aClass [
+   |tmpClass|
 	mainClass := aClass.
-	variables addAll: (aClass instVarNames)
+	variables addAll: (aClass instVarNames).
+	
+	tmpClass := aClass superclass.
+	[ tmpClass = Object ] whileFalse: 
+	[ variables addAll: (tmpClass instVarNames).
+	  tmpClass := tmpClass superclass. ]
+	
+	
+]
+
+{ #category : #accessing }
+GPCodeGenerator >> nameMethod [
+	^ nameMethod
 ]
 
 { #category : #accessing }
@@ -291,11 +313,33 @@ GPCodeGenerator >> restartRespondsVariables [
 ]
 
 { #category : #initialization }
+GPCodeGenerator >> setContractMethod [
+	|ans msplit|
+	
+	msplit := nameMethod splitOn: ':'.
+	(msplit size = 1) ifTrue: [^nameMethod].
+	ans := ''.
+	msplit doWithIndex: [ :key :i | (i < msplit size) ifTrue: [ans := ans , key,  ': ' , (args at: i) , ' 	'.] ].
+	^ ans.
+]
+
+{ #category : #initialization }
 GPCodeGenerator >> setInitialValues: arrayValues [
 	|dict|
 	dict:= Dictionary new.
 	variables doWithIndex:  [ :k :ii| dict add: k -> (arrayValues at: ii ) ].
 	self dictionary: dict.
+]
+
+{ #category : #accessing }
+GPCodeGenerator >> setOfArgs [
+   args:= (self nameClass >> (self nameMethod) asSymbol) argumentNames.
+	variables addAll: args.
+]
+
+{ #category : #accessing }
+GPCodeGenerator >> setOfVariables [
+	variables addAll: (self nameClass >> (self nameMethod) asSymbol) argumentNames.
 ]
 
 { #category : #accessing }
