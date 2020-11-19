@@ -202,6 +202,19 @@ GPAbstractCodeGeneratorConfiguration >> pickRandomVariable: vars with: ran [
 ]
 
 { #category : #'as yet unclassified' }
+GPAbstractCodeGeneratorConfiguration >> randomCalls [ 
+"% according to Roassal3 methods "
+	|c|
+	c:= self randomElementOf: (0 to: 99).
+	(c < 57) ifTrue: [ ^ 1 ]. " 0 calls, 57%"
+	(c < 70) ifTrue: [ ^ 2 ]. "1 call, 13%"
+	(c < 90) ifTrue: [ ^ 3 ]. "2 calls, 20%"
+	(c < 95) ifTrue: [ ^ 4 ]. "3 calls, 5%"
+	(c < 98) ifTrue: [ ^ 5 ]. "4 calls, 3%"
+	^ 6 "5 calls, 2%"
+]
+
+{ #category : #'as yet unclassified' }
 GPAbstractCodeGeneratorConfiguration >> respondsMethod: rootNode [
 	(rootNode  children isEmpty)
 	ifFalse: [self newTerminalVariable  ].
