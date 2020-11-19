@@ -17,7 +17,8 @@ Class {
 		'nameMethod',
 		'variablesMethod',
 		'testClass',
-		'packageTesting'
+		'packageTesting',
+		'sumWeightsAllVariables'
 	],
 	#category : #'GeneticProgramming-CodeGenerator'
 }
@@ -112,10 +113,29 @@ GPCodeGenerator >> codeBefore: aCode codeAfter: anOtherCode onPackageNamed: aPac
 	visitor  := self createVisitor: aCode , ' ' , anOtherCode .
 	spy := self createSpy: aCode , ' ' , anOtherCode.
 	self variables: (visitor variableNames).
-	variables add: #self.
 	self classes: (spy allClassesAsDictionary).
 	
 	self getMethods: classes.
+	sumWeightsAllVariables := 0.
+]
+
+{ #category : #'as yet unclassified' }
+GPCodeGenerator >> createGPArgs: setArgs [
+	^ self createGPArgs: setArgs class: (self nameClass ) w: 1000.
+		
+	
+	
+]
+
+{ #category : #'as yet unclassified' }
+GPCodeGenerator >> createGPArgs: setArgs class: aClass w: w [
+	^ setArgs collect: [ :arg | 
+		|var|
+		var := GPVariable new name: arg; weight: w; nameClass: aClass.
+		self sumWeightsAllVariables:( (self sumWeightsAllVariables)+ w).
+		var.].
+	
+	
 ]
 
 { #category : #'as yet unclassified' }
@@ -265,13 +285,18 @@ GPCodeGenerator >> nameClass [
 
 { #category : #accessing }
 GPCodeGenerator >> nameClass: aClass [
-   |tmpClass|
+   |tmpClass vars w|
 	mainClass := aClass.
-	variables addAll: (aClass instVarNames).
+	w:= 500.
+	vars:=  aClass instVarNames.
+	variables addAll: (self createGPArgs: vars class: aClass  w: w).
+	variables add: (GPVariable new  name: #self; weight: (w+100); nameClass: aClass).
+	self sumWeightsAllVariables: (self sumWeightsAllVariables ) + w +100.
 	
 	tmpClass := aClass superclass.
-	[ tmpClass = Object ] whileFalse: 
-	[ variables addAll: (tmpClass instVarNames).
+	[ tmpClass = Object ] whileFalse: [
+	w := w - 100. 
+	variables addAll: (self createGPArgs: (tmpClass instVarNames) class: tmpClass w: w).
 	  tmpClass := tmpClass superclass. ]
 	
 	
@@ -333,8 +358,10 @@ GPCodeGenerator >> setInitialValues: arrayValues [
 
 { #category : #accessing }
 GPCodeGenerator >> setOfArgs [
+	|gpargs|
    args:= (self nameClass >> (self nameMethod) asSymbol) argumentNames.
-	variables addAll: args.
+	gpargs := self createGPArgs: args.
+	variables addAll: gpargs.
 ]
 
 { #category : #accessing }
@@ -358,6 +385,16 @@ Set the test for fitness. Like: 'assert aKey equals: n'
 { #category : #accessing }
 GPCodeGenerator >> sumWeightsAllMethods [
 	^sumWeightsAllMethods 
+]
+
+{ #category : #accessing }
+GPCodeGenerator >> sumWeightsAllVariables [
+	^sumWeightsAllVariables
+]
+
+{ #category : #accessing }
+GPCodeGenerator >> sumWeightsAllVariables: aNumber [
+	sumWeightsAllVariables:= aNumber
 ]
 
 { #category : #'as yet unclassified' }

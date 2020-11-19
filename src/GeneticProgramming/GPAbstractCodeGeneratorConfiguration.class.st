@@ -154,8 +154,9 @@ GPAbstractCodeGeneratorConfiguration >> newTerminalRespondsVariable [
 
 { #category : #'instance creation' }
 GPAbstractCodeGeneratorConfiguration >> newTerminalVariable [
-	| res t|
-	t := self randomElementOf: (self variables).
+	| res vt t|
+	vt := (self pickRandomVariable: (self variables) with: (self randomElementOf: (0 to: (self sumWeightsAllVariables)))).
+	t := vt name.
 	res := GPNode new.
 	res printBlock: [ :children :context | t asString ].
 	res evaluationBlock: [ :children :context | context at: t]  .
@@ -165,10 +166,16 @@ GPAbstractCodeGeneratorConfiguration >> newTerminalVariable [
 
 { #category : #'instance creation' }
 GPAbstractCodeGeneratorConfiguration >> newTerminalVariableWithoutSelf [
-	| res t|
-	(self variables) remove: #self.
-	t := self randomElementOf: (self variables).
-	(self variables) add: #self.
+	| res vt t|
+	vt :=(self pickRandomVariable: (self variables) with: (self randomElementOf: (0 to: (self sumWeightsAllVariables)))).
+	t := vt name.
+	
+	"Variable cant not be self"
+	[ t = #self ] whileTrue: [ 
+	 vt :=(self pickRandomVariable: (self variables) with: (self randomElementOf: (0 to: (self sumWeightsAllVariables)))).
+	t := vt name.].
+	
+	
 	res := GPNode new.
 	res printBlock: [ :children :context | t asString ].
 	res evaluationBlock: [ :children :context | context at: t]  .
@@ -181,6 +188,15 @@ GPAbstractCodeGeneratorConfiguration >> pickRandomMethod: methods with: ran [
 	|acc|
 	acc:= 0.
 	methods do: [ :mw | acc := acc + (mw weight).
+		(acc >= ran) ifTrue: [ ^ mw ]. ].
+	
+]
+
+{ #category : #'as yet unclassified' }
+GPAbstractCodeGeneratorConfiguration >> pickRandomVariable: vars with: ran [ 
+	|acc|
+	acc:= 0.
+	vars do: [ :mw | acc := acc + (mw weight).
 		(acc >= ran) ifTrue: [ ^ mw ]. ].
 	
 ]
@@ -219,6 +235,11 @@ GPAbstractCodeGeneratorConfiguration >> returnNode [
 
 { #category : #'as yet unclassified' }
 GPAbstractCodeGeneratorConfiguration >> sumWeightsAllMethods [ 
+	self subclassResponsibility 
+]
+
+{ #category : #'as yet unclassified' }
+GPAbstractCodeGeneratorConfiguration >> sumWeightsAllVariables [ 
 	self subclassResponsibility 
 ]
 
