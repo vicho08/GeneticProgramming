@@ -5,7 +5,8 @@ Class {
 		'configuration',
 		'population',
 		'logs',
-		'fitnessOfPopulation'
+		'fitnessOfPopulation',
+		'infoRoulette'
 	],
 	#category : #'GeneticProgramming-Core'
 }
@@ -39,8 +40,8 @@ GPEngine >> createNewGeneration [
 	newPopulation add: self pickBestIndividual.
 	sizeHalf := ((population size -1) / 2.0) ceiling.
 	sizeHalf timesRepeat: [
-		i1 := self rouletteSelection.
-		i2 := self rouletteSelection.
+		i1 := self tournament.
+		i2 := self tournament .
 		newInds := i1 crossOverTwoChildrenWith: i2 using: configuration random.
 		newInd := newInds at: 1.
 		newInd2 := newInds at: 2.
@@ -147,7 +148,8 @@ GPEngine >> gtInspectorViewIn: composite [
 { #category : #initialization }
 GPEngine >> initialize [
 	super initialize.
-	logs := OrderedCollection new
+	logs := OrderedCollection new.
+	infoRoulette := 0.
 ]
 
 { #category : #hooks }
@@ -259,19 +261,30 @@ GPEngine >> returnTopIndividuals: ratio [
 GPEngine >> rouletteSelection [
 	"Return the best individual from a rouletteSelection"
 	|p sum|
-	p := configuration randomElementOf: (0 to: fitnessOfPopulation).
+	p := configuration randomElementOf: (0 to: infoRoulette).
 	sum:= 0.
 	population do:  [ :individual |
-		sum := sum + (self distanceFromSolutionOf: individual).
+		|dis val|
+		dis:= (self distanceFromSolutionOf: individual).
+		val := (dis * -1 + 59).
+		(val > 0) ifTrue:[ sum := sum + val].
 		sum >= p ifTrue: [ ^individual]
-	]
+	].
+	^ population last
 ]
 
 { #category : #evolution }
 GPEngine >> totalFitnessOfGeneration [
 	|total|
 	total:= 0.
-	population do: [ :individual  | total := total + (self distanceFromSolutionOf: individual)].
+	infoRoulette := 0.
+	population do: [ :individual  | 
+		|dis info|
+		dis := (self distanceFromSolutionOf: individual).
+		total := total + dis.
+		info := (dis * -1) + 59.
+		(info > 0 )
+		ifTrue: [infoRoulette := infoRoulette +info] . ].
 	^total
 ]
 

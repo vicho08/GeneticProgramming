@@ -139,9 +139,25 @@ GPCodeGenerator >> createGPArgs: setArgs class: aClass w: w [
 ]
 
 { #category : #'as yet unclassified' }
+GPCodeGenerator >> createGPArgs: setArgs class: aClass w: w types: typeCollection [
+	^ setArgs collect: [ :arg | 
+		|var|
+		var := GPVariable new name: arg; weight: w; nameClass: aClass; types: ((typeCollection at: arg) types).
+		self sumWeightsAllVariables:( (self sumWeightsAllVariables)+ w).
+		var.].
+
+]
+
+{ #category : #'as yet unclassified' }
 GPCodeGenerator >> createSpy: aCode [ 
 
 	^ (Dep profile: [aCode] onPackageNamed: mainPackage ).
+]
+
+{ #category : #'as yet unclassified' }
+GPCodeGenerator >> createTypeCollector: aClass [ 
+"type collector of current class"		
+	^ TypeCollector typeInstvarsOfClass: aClass
 ]
 
 { #category : #'as yet unclassified' }
@@ -174,14 +190,18 @@ GPCodeGenerator >> distanceFromSolutionOf: individual [
 	[SystemAnnouncer uniqueInstance 
 		suspendAllWhileStoring: [ mainClass compile: codeToCompile ].				]
 	on: Exception
-	do: [ ^100 ].	
-	penalty := individual numberOfNodes <= 15
+	do: [ ^1000 ].	
+	penalty := individual numberOfNodes <= 10
 		ifTrue: [ 0 ]
 		ifFalse: [ 1000].
 		
 	penalty := individual allLeaves size <= 4
 		ifTrue: [ penalty + 0 ]
 		ifFalse: [ penalty + 1000].
+		
+	penalty := individual countCallMethods  < 7
+		ifTrue: [ penalty + 0 ]
+		ifFalse: [ penalty + 10000].
 
 	
 	eval := 0.
@@ -243,7 +263,7 @@ GPCodeGenerator >> getMethods: aClasses [
 	|ms|
 	ms := OrderedCollection new.
 	aClasses do: [ :c |
-		|aClass|
+		|aClass t|
 		aClass := self getClass: c.		
 		(aClass selectors) do: [ :m|
 			|method|
@@ -285,19 +305,23 @@ GPCodeGenerator >> nameClass [
 
 { #category : #accessing }
 GPCodeGenerator >> nameClass: aClass [
-   |tmpClass vars w|
+   |tmpClass vars w t|
 	mainClass := aClass.
-	w:= 500.
+	w:= 300.
 	vars:=  aClass instVarNames.
-	variables addAll: (self createGPArgs: vars class: aClass  w: w).
-	variables add: (GPVariable new  name: #self; weight: (w+100); nameClass: aClass).
-	self sumWeightsAllVariables: (self sumWeightsAllVariables ) + w +100.
+	t := self createTypeCollector: aClass.
+	variables addAll: (self createGPArgs: vars class: aClass  w: w types: t).
+	variables add: (GPVariable new  name: #self; weight: (300); nameClass: aClass; types: (aClass asOrderedCollection)).
+	self sumWeightsAllVariables: (self sumWeightsAllVariables ) +300.
 	
 	tmpClass := aClass superclass.
 	[ tmpClass = Object ] whileFalse: [
-	w := w - 100. 
-	variables addAll: (self createGPArgs: (tmpClass instVarNames) class: tmpClass w: w).
-	  tmpClass := tmpClass superclass. ]
+	t := self createTypeCollector: tmpClass.
+	w := (w / 2) asFloat. 
+	variables addAll: (self createGPArgs: (tmpClass instVarNames) class: tmpClass w: w types: t).
+	  tmpClass := tmpClass superclass. ].
+
+	methods:= methods select: [ :m | (m possibleSenders: variables) size ~= 0 ]. 
 	
 	
 ]

@@ -7,13 +7,12 @@ Class {
 { #category : #accessing }
 ExperimentsGP >> callsOfEachAnswer: methods [
 	|calls|
-	calls := OrderedCollection new.
-	methods do: [ :m | 
+	calls := methods collect: [ :m | 
 		|info|
 		info := OrderedCollection new.
 		info add: ((m at: 1) name).
 		info add: ((m at: 2 ) countCallMethods ).
-		calls  add:info].
+		info].
 	^ calls 
 ]
 
@@ -64,6 +63,22 @@ ExperimentsGP >> getMethods: aPackage in: aPackageTesting [
 	
 	^ methods
 	
+]
+
+{ #category : #accessing }
+ExperimentsGP >> isSetter: aMethod [
+    | body astCache variableName |
+    (aMethod selector select: [ :c | c = $: ]) size = 1 ifFalse: [ ^ false ].
+
+    astCache := aMethod ast.    
+    variableName := astCache arguments first name.
+    
+    body := astCache body.
+    body statements size = 1 ifFalse: [ ^ false ].
+    body children first class == RBAssignmentNode ifFalse: [ ^ false ].
+    ^ ((body children first variable name = aMethod selector allButLast)
+        and: (body children first value class = RBArgumentNode ))
+        and: ( body children first value name = variableName )
 ]
 
 { #category : #accessing }
@@ -132,7 +147,7 @@ ExperimentsGP >> totalSetters: methods [
    |a|
 	a := 0.
 	methods do: [ :array | 
-	( (array at: 1) isSetter)
+	( self isSetter: (array at: 1))
 	ifTrue: [ a := a + 1. ]].
 	^ a
 ]

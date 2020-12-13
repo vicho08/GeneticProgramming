@@ -11,12 +11,13 @@ x := ops
 Replace the value associated with x with the result of 'ops'
 "
 	| res |
-	res := GPNode new.
+	res := GPNodeGeneratorCode new.
 	res printBlock: [ :children :context | 
 		(children first printUsing: context), ' := ', (children second printUsing: context), ''].
 	res evaluationBlock: [ :children :context | 
 		context at: ((children first printUsing: context) asSymbol) put: (children second evaluateUsing: context)].
 	res type: 'assigment'.
+	res name: 'assigment'.
 	^ res
 ]
 
@@ -36,15 +37,15 @@ GPAbstractCodeGeneratorConfiguration >> createNewIndividual [
 	"
 	
 	| rootNode m c|
-	c:= self randomElementOf: (1 to: 10).
-	 (c<5) ifTrue: [  
+	c:= self randomElementOf: (0 to: 99).
+	 (c<63) ifTrue: [  
 		rootNode := self returnNode.
 		m := self newMethod.
 		rootNode addChild: m.
 		(self createNewIndividualRoot: m depth: 3).
 		^ rootNode].
-	 (c>4 and: c<9) ifTrue: [ rootNode := self newMethod ].
-	(c> 8 and: c <11) ifTrue: [ rootNode := self assigmentNode  ].  
+	 (c<89) ifTrue: [ rootNode := self newMethod ].
+	(c> 88 and: (c<100)) ifTrue: [ rootNode := self assigmentNode  ].  
 	self createNewIndividualRoot: rootNode depth: 3.
 	^ rootNode
 ]
@@ -70,8 +71,9 @@ args 			:= call | Obj
 			^self].
 		
 	0 to: n do: [ :i |
-		((self randomElementOf: (1 to: 10)) <3)
-		ifTrue: [ rootNode addChild: self newTerminalVariable ]
+		((self randomElementOf: (0 to: 9)) <3)
+		ifTrue: [ 
+			rootNode addChild: self newTerminalVariable ]
 		ifFalse: [ 
 			f := self methodNode.
 			rootNode addChild: f.
@@ -88,7 +90,7 @@ GPAbstractCodeGeneratorConfiguration >> methodNode [
 	| res mt msplit t|
 	mt := (self pickRandomMethod: (self methods) with: (self randomElementOf: (0 to: (self sumWeightsAllMethods)) )).
 	t := mt name.
-	res := GPNode new.
+	res := GPNodeGeneratorCode new.
 
 	msplit := (t asString) splitOn: ':'.
 	(msplit size = 1)
@@ -116,6 +118,10 @@ GPAbstractCodeGeneratorConfiguration >> mutate: individual [
 	
 	nodeToMutate := self createNewIndividual.
 	newInd := individual crossOverWith: nodeToMutate.
+	[individual verifyVariable: newInd] whileTrue:[
+	nodeToMutate := self createNewIndividual.
+	newInd := individual crossOverWith: nodeToMutate.
+	].
 	individual children: newInd children.
 	individual printBlock: newInd printBlock.
 	individual evaluationBlock: newInd evaluationBlock.
@@ -130,22 +136,12 @@ GPAbstractCodeGeneratorConfiguration >> newMethod [
 ]
 
 { #category : #'instance creation' }
-GPAbstractCodeGeneratorConfiguration >> newTerminalMethod [
-	| res t|
-	t := self randomElementOf: (self unaryMethods).
-	res := GPNode new.
-	res printBlock: [ :children :context | t asString ].
-	res evaluationBlock: [ :children :context | [ :object | object perform: t]]  .
-	res type: 'method'.
-	^ res
-]
-
-{ #category : #'instance creation' }
-GPAbstractCodeGeneratorConfiguration >> newTerminalRespondsVariable [
-	| res t|
-	(self respondsVariables isEmpty) ifTrue:[ ^self newTerminalVariable  ].
-	t := self randomElementOf: (self respondsVariables).
-	res := GPNode new.
+GPAbstractCodeGeneratorConfiguration >> newSenderVariable: aNameMethod [
+	| res vt t st|
+	st := (self methods) select: [ : m | (m name) = (aNameMethod asSymbol) ].
+	vt := self randomElementOf: ((st at: 1) sendersCache).
+	t := vt name.
+	res := GPNodeGeneratorCode new.
 	res printBlock: [ :children :context | t asString ].
 	res evaluationBlock: [ :children :context | context at: t]  .
 	res type: 'variable'.
@@ -157,7 +153,7 @@ GPAbstractCodeGeneratorConfiguration >> newTerminalVariable [
 	| res vt t|
 	vt := (self pickRandomVariable: (self variables) with: (self randomElementOf: (0 to: (self sumWeightsAllVariables)))).
 	t := vt name.
-	res := GPNode new.
+	res := GPNodeGeneratorCode new.
 	res printBlock: [ :children :context | t asString ].
 	res evaluationBlock: [ :children :context | context at: t]  .
 	res type: 'variable'.
@@ -184,20 +180,23 @@ GPAbstractCodeGeneratorConfiguration >> newTerminalVariableWithoutSelf [
 ]
 
 { #category : #'as yet unclassified' }
-GPAbstractCodeGeneratorConfiguration >> pickRandomMethod: methods with: ran [ 
+GPAbstractCodeGeneratorConfiguration >> pickRandomMethod: methods with: w [
 	|acc|
 	acc:= 0.
-	methods do: [ :mw | acc := acc + (mw weight).
-		(acc >= ran) ifTrue: [ ^ mw ]. ].
+	methods detect: [ :mw | 
+		acc := acc + (mw weight).
+		(acc >= w)  ].
 	
 ]
 
 { #category : #'as yet unclassified' }
-GPAbstractCodeGeneratorConfiguration >> pickRandomVariable: vars with: ran [ 
+GPAbstractCodeGeneratorConfiguration >> pickRandomVariable: vars with: w [
+"choose a variable according to weight system"
 	|acc|
 	acc:= 0.
-	vars do: [ :mw | acc := acc + (mw weight).
-		(acc >= ran) ifTrue: [ ^ mw ]. ].
+	vars detect: [ :mw | 
+		acc := acc + (mw weight).
+		(acc >= w) ].
 	
 ]
 
@@ -215,17 +214,6 @@ GPAbstractCodeGeneratorConfiguration >> randomCalls [
 ]
 
 { #category : #'as yet unclassified' }
-GPAbstractCodeGeneratorConfiguration >> respondsMethod: rootNode [
-	(rootNode  children isEmpty)
-	ifFalse: [self newTerminalVariable  ].
-	self restartRespondsVariables .
-	self variables do: [ :v | ((self types at: v) respondsTo:  rootNode name)
-		ifTrue: [ self respondsVariables add: v ] ].
-	
-	^ self newTerminalRespondsVariable
-]
-
-{ #category : #'as yet unclassified' }
 GPAbstractCodeGeneratorConfiguration >> respondsVariables [
 	self subclassResponsibility
 ]
@@ -238,7 +226,7 @@ GPAbstractCodeGeneratorConfiguration >> restartRespondsVariables [
 { #category : #'as yet unclassified' }
 GPAbstractCodeGeneratorConfiguration >> returnNode [
 	| res |
-	res := GPNode new.
+	res := GPNodeGeneratorCode new.
 	
 	res printBlock: [ :children :context | '^ ' , (children first printUsing: context), ' '].
 	res type: 'return'.

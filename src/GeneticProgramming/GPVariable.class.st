@@ -4,7 +4,8 @@ Class {
 	#instVars : [
 		'name',
 		'weight',
-		'nameClass'
+		'nameClass',
+		'types'
 	],
 	#category : #'GeneticProgramming-CodeGenerator'
 }
@@ -27,6 +28,17 @@ GPVariable >> nameClass [
 { #category : #accessing }
 GPVariable >> nameClass: aName [
 	nameClass := aName
+]
+
+{ #category : #accessing }
+GPVariable >> types [ 
+	^ types
+]
+
+{ #category : #accessing }
+GPVariable >> types: aCollection [ 
+"possible types of a variable by TypeCollector"
+	types:= aCollection
 ]
 
 { #category : #accessing }
