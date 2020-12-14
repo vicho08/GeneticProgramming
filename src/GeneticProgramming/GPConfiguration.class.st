@@ -84,7 +84,7 @@ GPConfiguration >> numberOfGenerations [
 
 { #category : #accessing }
 GPConfiguration >> populationSize [
-	^ 30
+	^ 40
 ]
 
 { #category : #accessing }

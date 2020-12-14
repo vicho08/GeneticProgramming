@@ -18,7 +18,8 @@ Class {
 		'variablesMethod',
 		'testClass',
 		'packageTesting',
-		'sumWeightsAllVariables'
+		'sumWeightsAllVariables',
+		'totalTests'
 	],
 	#category : #'GeneticProgramming-CodeGenerator'
 }
@@ -53,6 +54,19 @@ GPCodeGenerator >> assignWeights: arrayMethods [
 		self assignWeightTo: method .
 		 ]
 
+]
+
+{ #category : #'as yet unclassified' }
+GPCodeGenerator >> calculateTotalTests: aPackage [
+		|total classesTesting pa|
+		total:=0.
+		pa:= (RPackageOrganizer default packageNamed: 'Roassal3-Chart-Tests').
+		classesTesting := pa classes asOrderedCollection .	
+		classesTesting do: [ :class |
+		|running|
+		running:= class buildSuite run.
+		total:= total + (running passed size)]. 
+		^ total
 ]
 
 { #category : #accessing }
@@ -109,7 +123,7 @@ GPCodeGenerator >> codeBefore: aCode codeAfter: anOtherCode onPackageNamed: aPac
 	self codeBefore: aCode.
 	self codeAfter: anOtherCode.
 	mainPackage := aPackage.
-	
+	totalTests := self calculateTotalTests: aPackage.
 	visitor  := self createVisitor: aCode , ' ' , anOtherCode .
 	spy := self createSpy: aCode , ' ' , anOtherCode.
 	self variables: (visitor variableNames).
@@ -226,7 +240,7 @@ GPCodeGenerator >> distanceFromSolutionOf: individual [
     			p terminate ]].
 	
 	"the fitness is the difference between total tests and passed tests"
-	individual fitnessCache: ((59 - eval) abs) + penalty.
+	individual fitnessCache: ((totalTests  - eval) abs) + penalty.
 	^ individual fitnessCache 
 ]
 
@@ -282,6 +296,7 @@ GPCodeGenerator >> initialize [
 	super initialize.
 	self restartRespondsVariables.
 	SettersMethod initialize.
+	self callSystemWeight: ({ 57 . 70 . 90 . 95 . 98}) asOrderedCollection .
 ]
 
 { #category : #testing }

@@ -1,6 +1,9 @@
 Class {
 	#name : #GPAbstractCodeGeneratorConfiguration,
 	#superclass : #GPConfiguration,
+	#instVars : [
+		'callSystemWeight'
+	],
 	#category : #'GeneticProgramming-Core'
 }
 
@@ -19,6 +22,16 @@ Replace the value associated with x with the result of 'ops'
 	res type: 'assigment'.
 	res name: 'assigment'.
 	^ res
+]
+
+{ #category : #accessing }
+GPAbstractCodeGeneratorConfiguration >> callSystemWeight [
+	^ callSystemWeight 
+]
+
+{ #category : #accessing }
+GPAbstractCodeGeneratorConfiguration >> callSystemWeight: aCollection [
+	callSystemWeight := aCollection
 ]
 
 { #category : #operations }
@@ -42,11 +55,11 @@ GPAbstractCodeGeneratorConfiguration >> createNewIndividual [
 		rootNode := self returnNode.
 		m := self newMethod.
 		rootNode addChild: m.
-		(self createNewIndividualRoot: m depth: 3).
+		(self createNewIndividualRoot: m depth: (self randomCalls)).
 		^ rootNode].
 	 (c<89) ifTrue: [ rootNode := self newMethod ].
 	(c> 88 and: (c<100)) ifTrue: [ rootNode := self assigmentNode  ].  
-	self createNewIndividualRoot: rootNode depth: 3.
+	self createNewIndividualRoot: rootNode depth: (self randomCalls).
 	^ rootNode
 ]
 
@@ -172,7 +185,7 @@ GPAbstractCodeGeneratorConfiguration >> newTerminalVariableWithoutSelf [
 	t := vt name.].
 	
 	
-	res := GPNode new.
+	res := GPNodeGeneratorCode  new.
 	res printBlock: [ :children :context | t asString ].
 	res evaluationBlock: [ :children :context | context at: t]  .
 	res type: 'variable'.
@@ -183,7 +196,7 @@ GPAbstractCodeGeneratorConfiguration >> newTerminalVariableWithoutSelf [
 GPAbstractCodeGeneratorConfiguration >> pickRandomMethod: methods with: w [
 	|acc|
 	acc:= 0.
-	methods detect: [ :mw | 
+	^ methods detect: [ :mw | 
 		acc := acc + (mw weight).
 		(acc >= w)  ].
 	
@@ -194,7 +207,7 @@ GPAbstractCodeGeneratorConfiguration >> pickRandomVariable: vars with: w [
 "choose a variable according to weight system"
 	|acc|
 	acc:= 0.
-	vars detect: [ :mw | 
+	^ vars detect: [ :mw | 
 		acc := acc + (mw weight).
 		(acc >= w) ].
 	
@@ -205,11 +218,11 @@ GPAbstractCodeGeneratorConfiguration >> randomCalls [
 "% according to Roassal3 methods "
 	|c|
 	c:= self randomElementOf: (0 to: 99).
-	(c < 57) ifTrue: [ ^ 1 ]. " 0 calls, 57%"
-	(c < 70) ifTrue: [ ^ 2 ]. "1 call, 13%"
-	(c < 90) ifTrue: [ ^ 3 ]. "2 calls, 20%"
-	(c < 95) ifTrue: [ ^ 4 ]. "3 calls, 5%"
-	(c < 98) ifTrue: [ ^ 5 ]. "4 calls, 3%"
+	(c < (callSystemWeight at: 1)) ifTrue: [ ^ 1 ]. " 0 calls, 57%"
+	(c < (callSystemWeight at: 2)) ifTrue: [ ^ 2 ]. "1 call, 13%"
+	(c < (callSystemWeight at: 3)) ifTrue: [ ^ 3 ]. "2 calls, 20%"
+	(c < (callSystemWeight at: 4)) ifTrue: [ ^ 4 ]. "3 calls, 5%"
+	(c < (callSystemWeight at: 5)) ifTrue: [ ^ 5 ]. "4 calls, 3%"
 	^ 6 "5 calls, 2%"
 ]
 

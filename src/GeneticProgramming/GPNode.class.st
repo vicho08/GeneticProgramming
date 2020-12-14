@@ -114,7 +114,7 @@ GPNode >> crossOverWith: anotherNode using: random [
 { #category : #operations }
 GPNode >> deepCopy [
 	| c |
-	c := GPNode new type: type; evaluationBlock: evaluationBlock; printBlock: printBlock; name: name.
+	c := GPNodeGeneratorCode  new type: type; evaluationBlock: evaluationBlock; printBlock: printBlock; name: name.
 	self children do: [ :child |
 		c addChild: child deepCopy ].
 	^ c
@@ -123,7 +123,7 @@ GPNode >> deepCopy [
 { #category : #operations }
 GPNode >> deepCopy: ind [
 	| c |
-	c := GPNode new type: (ind type); evaluationBlock: (ind evaluationBlock); printBlock: (ind printBlock); name: (ind name).
+	c := GPNodeGeneratorCode  new type: (ind type); evaluationBlock: (ind evaluationBlock); printBlock: (ind printBlock); name: (ind name).
 	ind children do: [ :child |
 		c addChild: child deepCopy ].
 	^ c

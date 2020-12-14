@@ -35,7 +35,7 @@ GPNodeGeneratorCode >> crossOverTwoChildrenWith: anotherNode using: random [
 	whileTrue: [
 		index1 :=  (random nextInt: self numberOfNodes - 1) + 1.
 		index2 := (random nextInt: anotherNode numberOfNodes - 1) + 1.
-		child2:= anotherNode crossOverWith: self at: index1 at: index2].
+		child2:= anotherNode crossOverWith: self at: index2 at: index1].
 	
 	^ {child1 . child2}
 ]

@@ -1,6 +1,9 @@
 Class {
 	#name : #GPEngineGeneratorCode,
 	#superclass : #GPEngine,
+	#instVars : [
+		'infoRoulette'
+	],
 	#category : #'GeneticProgramming-Core'
 }
 
@@ -18,7 +21,7 @@ GPEngineGeneratorCode >> createNewGeneration [
 		newInds := self repeatOperatorsGenetics.
 		newInd := newInds at: 1.
 		newInd2 := newInds at: 2.
-		n_calls:= self randomCalls.
+		n_calls:= (self configuration ) randomCalls.
 		[(self verifyCallsMethods: ({newInd . newInd2} asOrderedCollection) value: n_calls)]
 	 whileFalse: [ 
 		newInds:= self repeatOperatorsGenetics. 
@@ -31,30 +34,54 @@ GPEngineGeneratorCode >> createNewGeneration [
 	fitnessOfPopulation := self totalFitnessOfGeneration 
 ]
 
-{ #category : #'as yet unclassified' }
-GPEngineGeneratorCode >> randomCalls [ 
-"% according to Roassal3 methods "
-	|c|
-	c:= self randomElementOf: (0 to: 99).
-	(c < 57) ifTrue: [ ^ 1 ]. " 0 calls, 57%"
-	(c < 70) ifTrue: [ ^ 2 ]. "1 call, 13%"
-	(c < 90) ifTrue: [ ^ 3 ]. "2 calls, 20%"
-	(c < 95) ifTrue: [ ^ 4 ]. "3 calls, 5%"
-	(c < 98) ifTrue: [ ^ 5 ]. "4 calls, 3%"
-	^ 6 "5 calls, 2%"
+{ #category : #initialization }
+GPEngineGeneratorCode >> initialize [ 
+	super initialize.
+	infoRoulette := 0.
 ]
 
 { #category : #'as yet unclassified' }
 GPEngineGeneratorCode >> repeatOperatorsGenetics [
  	|i1 i2 newInds|
-		i1 := self  tournament .
-		i2 := self tournament .
+		i1 := self  rouletteSelection .
+		i2 := self rouletteSelection .
 		newInds := i1 crossOverTwoChildrenWith: i2 using: configuration random.
-		((configuration randomInt: 100) > 85)
+		((configuration randomInt: 100) > 70)
 			ifTrue: [ self mutation: (newInds at: 1) ].
-		((configuration randomInt: 100) > 85)
+		((configuration randomInt: 100) > 70)
 			ifTrue: [ self mutation: (newInds at: 2) ].
 		^ newInds
+]
+
+{ #category : #evolution }
+GPEngineGeneratorCode >> rouletteSelection [
+	"Return the best individual from a rouletteSelection"
+	|p sum|
+	p := configuration randomElementOf: (0 to: infoRoulette).
+	sum:= 0.
+	^ population detect:  [ :individual |
+		|dis val|
+		dis:= (self distanceFromSolutionOf: individual).
+		val := (dis * -1 + 59).
+		(val > 0) ifTrue:[ sum := sum + val].
+		(sum >= p).
+	].
+]
+
+{ #category : #evolution }
+GPEngineGeneratorCode >> totalFitnessOfGeneration [
+	|total totalTests|
+	total:= 0.
+	infoRoulette := 0.
+	totalTests:= (self configuration) totalTests.
+	population do: [ :individual  | 
+		|dis info|
+		dis := (self distanceFromSolutionOf: individual).
+		total := total + dis.
+		info := (dis * -1) + totalTests.
+		(info > 0 )
+		ifTrue: [infoRoulette := infoRoulette +info] . ].
+	^total
 ]
 
 { #category : #'as yet unclassified' }

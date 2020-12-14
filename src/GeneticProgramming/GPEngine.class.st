@@ -5,8 +5,7 @@ Class {
 		'configuration',
 		'population',
 		'logs',
-		'fitnessOfPopulation',
-		'infoRoulette'
+		'fitnessOfPopulation'
 	],
 	#category : #'GeneticProgramming-Core'
 }
@@ -149,7 +148,6 @@ GPEngine >> gtInspectorViewIn: composite [
 GPEngine >> initialize [
 	super initialize.
 	logs := OrderedCollection new.
-	infoRoulette := 0.
 ]
 
 { #category : #hooks }
@@ -261,30 +259,25 @@ GPEngine >> returnTopIndividuals: ratio [
 GPEngine >> rouletteSelection [
 	"Return the best individual from a rouletteSelection"
 	|p sum|
-	p := configuration randomElementOf: (0 to: infoRoulette).
+	p := configuration randomElementOf: (0 to: fitnessOfPopulation).
 	sum:= 0.
-	population do:  [ :individual |
-		|dis val|
-		dis:= (self distanceFromSolutionOf: individual).
-		val := (dis * -1 + 59).
-		(val > 0) ifTrue:[ sum := sum + val].
-		sum >= p ifTrue: [ ^individual]
+	^ population detect:  [ :ind |
+		|dis|
+		dis:= (self distanceFromSolutionOf: ind).
+		sum := sum +dis.
+		(sum >= p).
 	].
-	^ population last
 ]
 
 { #category : #evolution }
 GPEngine >> totalFitnessOfGeneration [
 	|total|
 	total:= 0.
-	infoRoulette := 0.
 	population do: [ :individual  | 
-		|dis info|
+		|dis|
 		dis := (self distanceFromSolutionOf: individual).
-		total := total + dis.
-		info := (dis * -1) + 59.
-		(info > 0 )
-		ifTrue: [infoRoulette := infoRoulette +info] . ].
+		total := total + dis. ].
+	
 	^total
 ]
 
