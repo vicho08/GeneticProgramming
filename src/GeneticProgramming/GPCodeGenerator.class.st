@@ -442,6 +442,11 @@ GPCodeGenerator >> testing: aTestClass [
 ]
 
 { #category : #accessing }
+GPCodeGenerator >> totalTests [
+	^ totalTests 
+]
+
+{ #category : #accessing }
 GPCodeGenerator >> types [
 	^types
 ]

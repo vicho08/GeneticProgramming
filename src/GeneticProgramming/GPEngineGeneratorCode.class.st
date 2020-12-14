@@ -57,12 +57,13 @@ GPEngineGeneratorCode >> repeatOperatorsGenetics [
 GPEngineGeneratorCode >> rouletteSelection [
 	"Return the best individual from a rouletteSelection"
 	|p sum|
+	
 	p := configuration randomElementOf: (0 to: infoRoulette).
 	sum:= 0.
 	^ population detect:  [ :individual |
 		|dis val|
 		dis:= (self distanceFromSolutionOf: individual).
-		val := (dis * -1 + 59).
+		val := (dis * -1 + ((self configuration) totalTests)).
 		(val > 0) ifTrue:[ sum := sum + val].
 		(sum >= p).
 	].
