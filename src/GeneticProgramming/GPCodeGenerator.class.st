@@ -100,23 +100,6 @@ GPCodeGenerator >> codeBefore: aCode [
 ]
 
 { #category : #initialization }
-GPCodeGenerator >> codeBefore: aCode codeAfter: anOtherCode [
-	
-	|visitor spy|
-	
-	self codeBefore: aCode.
-	self codeAfter: anOtherCode.
-	
-	visitor  := self createVisitor: aCode , ' ' , anOtherCode .
-	spy      := self createSpy: aCode, ' ' , anOtherCode .
-	
-	self variables: (visitor variableNames).
-	self classes: (spy allClasses).
-	
-	self getMethods: classes.
-]
-
-{ #category : #initialization }
 GPCodeGenerator >> codeBefore: aCode codeAfter: anOtherCode onPackageNamed: aPackage [
 	|visitor spy|
 	
@@ -124,6 +107,28 @@ GPCodeGenerator >> codeBefore: aCode codeAfter: anOtherCode onPackageNamed: aPac
 	self codeAfter: anOtherCode.
 	mainPackage := aPackage.
 	totalTests := self calculateTotalTests: aPackage.
+	visitor  := self createVisitor: aCode , ' ' , anOtherCode .
+	spy := self createSpy: aCode , ' ' , anOtherCode.
+	self variables: (visitor variableNames).
+	self classes: (spy allClassesAsDictionary).
+	
+	self getMethods: classes.
+	sumWeightsAllVariables := 0.
+]
+
+{ #category : #initialization }
+GPCodeGenerator >> codeBefore: aCode codeAfter: anOtherCode onPackageNamed: aPackage onPackageTesting: aPackageTests [
+	|visitor spy|
+	"settings"
+	self codeBefore: aCode.
+	self codeAfter: anOtherCode.
+	self packageTesting: aPackageTests.
+	self mainPackage: aPackage.
+	
+	"setting fitness"
+	totalTests := self calculateTotalTests: aPackageTests.
+	
+	"setting methods and variables and weight system"
 	visitor  := self createVisitor: aCode , ' ' , anOtherCode .
 	spy := self createSpy: aCode , ' ' , anOtherCode.
 	self variables: (visitor variableNames).
@@ -306,6 +311,16 @@ GPCodeGenerator >> isClass: aSymbol [
 					(OpalCompiler new
 						source: aSymbol;
 						evaluate)
+]
+
+{ #category : #accessing }
+GPCodeGenerator >> mainPackage [
+	^ mainPackage 
+]
+
+{ #category : #accessing }
+GPCodeGenerator >> mainPackage: aPackageString [
+	mainPackage := aPackageString
 ]
 
 { #category : #accessing }
