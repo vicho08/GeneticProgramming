@@ -19,7 +19,8 @@ Class {
 		'testClass',
 		'packageTesting',
 		'sumWeightsAllVariables',
-		'totalTests'
+		'totalTests',
+		'spyCache'
 	],
 	#category : #'GeneticProgramming-CodeGenerator'
 }
@@ -57,10 +58,10 @@ GPCodeGenerator >> assignWeights: arrayMethods [
 ]
 
 { #category : #'as yet unclassified' }
-GPCodeGenerator >> calculateTotalTests: aPackage [
+GPCodeGenerator >> calculateTotalTests [
 		|total classesTesting pa|
 		total:=0.
-		pa:= (RPackageOrganizer default packageNamed: 'Roassal3-Chart-Tests').
+		pa:= (RPackageOrganizer default packageNamed: (packageTesting name asString) ).
 		classesTesting := pa classes asOrderedCollection .	
 		classesTesting do: [ :class |
 		|running|
@@ -100,23 +101,6 @@ GPCodeGenerator >> codeBefore: aCode [
 ]
 
 { #category : #initialization }
-GPCodeGenerator >> codeBefore: aCode codeAfter: anOtherCode onPackageNamed: aPackage [
-	|visitor spy|
-	
-	self codeBefore: aCode.
-	self codeAfter: anOtherCode.
-	mainPackage := aPackage.
-	totalTests := self calculateTotalTests: aPackage.
-	visitor  := self createVisitor: aCode , ' ' , anOtherCode .
-	spy := self createSpy: aCode , ' ' , anOtherCode.
-	self variables: (visitor variableNames).
-	self classes: (spy allClassesAsDictionary).
-	
-	self getMethods: classes.
-	sumWeightsAllVariables := 0.
-]
-
-{ #category : #initialization }
 GPCodeGenerator >> codeBefore: aCode codeAfter: anOtherCode onPackageNamed: aPackage onPackageTesting: aPackageTests [
 	|visitor spy|
 	"settings"
@@ -126,15 +110,15 @@ GPCodeGenerator >> codeBefore: aCode codeAfter: anOtherCode onPackageNamed: aPac
 	self mainPackage: aPackage.
 	
 	"setting fitness"
-	totalTests := self calculateTotalTests: aPackageTests.
+	totalTests := self calculateTotalTests.
 	
 	"setting methods and variables and weight system"
 	visitor  := self createVisitor: aCode , ' ' , anOtherCode .
-	spy := self createSpy: aCode , ' ' , anOtherCode.
+	spy := self createSpy.
 	self variables: (visitor variableNames).
-	self classes: (spy allClassesAsDictionary).
+	self classes: (spy allClasses).
 	
-	self getMethods: classes.
+	self getMethods: (spy allMethods).
 	sumWeightsAllVariables := 0.
 ]
 
@@ -160,17 +144,33 @@ GPCodeGenerator >> createGPArgs: setArgs class: aClass w: w [
 { #category : #'as yet unclassified' }
 GPCodeGenerator >> createGPArgs: setArgs class: aClass w: w types: typeCollection [
 	^ setArgs collect: [ :arg | 
-		|var|
-		var := GPVariable new name: arg; weight: w; nameClass: aClass; types: ((typeCollection at: arg) types).
+		|var ts|
+		ts := (typeCollection at: arg).
+		(ts isNotNil) ifTrue: [ts:= (ts asOrderedCollection )].
+		var := GPVariable new name: arg; weight: w; nameClass: aClass; types: ts.
 		self sumWeightsAllVariables:( (self sumWeightsAllVariables)+ w).
 		var.].
 
 ]
 
 { #category : #'as yet unclassified' }
+GPCodeGenerator >> createSpy [
+	|classesTesting ts|
+	(spyCache isNotNil) ifTrue: [ ^ spyCache ].
+	classesTesting := packageTesting  classes asOrderedCollection .	
+		 
+	ts :=(Type profile: [ 
+	classesTesting do: [ :class |
+		|running|
+		running:= class buildSuite run.]] onPackageNamed: mainPackage ). 
+	spyCache:= ts.
+	^ ts 
+]
+
+{ #category : #'as yet unclassified' }
 GPCodeGenerator >> createSpy: aCode [ 
 
-	^ (Dep profile: [aCode] onPackageNamed: mainPackage ).
+	^ (Type profile: [aCode] onPackageNamed: mainPackage ).
 ]
 
 { #category : #'as yet unclassified' }
@@ -272,25 +272,42 @@ GPCodeGenerator >> extractVariableNames: code [
 ]
 
 { #category : #'as yet unclassified' }
+GPCodeGenerator >> getArgumentTypes: aMethod [
+	|ans|
+	ans := (aMethod argumentTypes).
+	(ans size ~= 0) ifTrue:[ ^ ans first asOrderedCollection].
+	^ ans asOrderedCollection 
+]
+
+{ #category : #'as yet unclassified' }
 GPCodeGenerator >> getClass: aClass [
 
 	^ OpalCompiler new source: (aClass className ); evaluate.
 ]
 
 { #category : #'as yet unclassified' }
-GPCodeGenerator >> getMethods: aClasses [
+GPCodeGenerator >> getCountArgument: aMethod class: aClass [ 
+	|class|
+	class:= OpalCompiler new source: aClass ; evaluate.
+	^ (class >> aMethod) argumentNames size .
+
+]
+
+{ #category : #'as yet unclassified' }
+GPCodeGenerator >> getMethods: aSetMethods [
 	|ms|
 	ms := OrderedCollection new.
-	aClasses do: [ :c |
-		|aClass t|
-		aClass := self getClass: c.		
-		(aClass selectors) do: [ :m|
-			|method|
+	ms:= aSetMethods collect: [ :m |
+		   |method|
 			method := GPMethod new.
-			method name: m.
-			method numArgs: (aClass >> m) argumentNames size .
-			ms add: method.
-		 ].].
+			method name: (m selector).
+			method realClass: (m classSpy className).
+			method numArgs: (self getCountArgument: (method name) class: (method realClass)).
+			(m hasBeenExecuted) ifTrue:[
+				method args: (self getArgumentTypes: m).
+				method result: (m returnType) asOrderedCollection].
+			method
+		 ].
 
 		methods := ms.
 
@@ -339,14 +356,14 @@ GPCodeGenerator >> nameClass: aClass [
 	mainClass := aClass.
 	w:= 300.
 	vars:=  aClass instVarNames.
-	t := self createTypeCollector: aClass.
+	t := self typesBySpy: aClass.
 	variables addAll: (self createGPArgs: vars class: aClass  w: w types: t).
 	variables add: (GPVariable new  name: #self; weight: (300); nameClass: aClass; types: (aClass asOrderedCollection)).
 	self sumWeightsAllVariables: (self sumWeightsAllVariables ) +300.
 	
 	tmpClass := aClass superclass.
 	[ tmpClass = Object ] whileFalse: [
-	t := self createTypeCollector: tmpClass.
+	t := self typesBySpy: tmpClass.
 	w := (w / 2) asFloat. 
 	variables addAll: (self createGPArgs: (tmpClass instVarNames) class: tmpClass w: w types: t).
 	  tmpClass := tmpClass superclass. ].
@@ -469,6 +486,21 @@ GPCodeGenerator >> types [
 { #category : #accessing }
 GPCodeGenerator >> types: aDictionary [
 	types:= aDictionary 
+]
+
+{ #category : #'as yet unclassified' }
+GPCodeGenerator >> typesBySpy: aClass [
+	|vars cs vs ans ms|
+	
+	vars:= aClass instVarNames.
+	cs := aClass name asSymbol.
+	ms := (self createSpy) allMethods.
+	vs := ms select: [ :m | ((m originalMethod) isReturnField) and: (cs = (m classSpy className))] .
+	ans:= Dictionary new. 
+	vs do: [ :m | 
+		ans at: (m selector) put: m returnType ].
+	
+	^ans
 ]
 
 { #category : #accessing }

@@ -105,5 +105,6 @@ GPConfiguration >> randomElementOf: aCollection [
 
 { #category : #'private-random operations' }
 GPConfiguration >> randomInt: anInt [
-	^ random nextInt: anInt
+
+	^ random nextInteger: anInt
 ]

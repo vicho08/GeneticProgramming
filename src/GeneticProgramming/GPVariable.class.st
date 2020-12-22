@@ -36,9 +36,13 @@ GPVariable >> types [
 ]
 
 { #category : #accessing }
-GPVariable >> types: aCollection [ 
-"possible types of a variable by TypeCollector"
-	types:= aCollection
+GPVariable >> types: aCollection [
+
+	"possible types of a variable by TypeCollector"
+
+	types := aCollection isNotNil
+		         ifTrue: [ aCollection collect: [ :v | v name] ]
+		         ifFalse: [ nil ]
 ]
 
 { #category : #accessing }

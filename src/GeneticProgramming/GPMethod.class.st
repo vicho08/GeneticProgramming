@@ -5,10 +5,23 @@ Class {
 		'name',
 		'numArgs',
 		'weight',
+		'args',
+		'result',
+		'realClass',
 		'sendersCache'
 	],
 	#category : #'GeneticProgramming-CodeGenerator'
 }
+
+{ #category : #accessing }
+GPMethod >> args [
+	^ args
+]
+
+{ #category : #accessing }
+GPMethod >> args: aCollection [ 
+	args:= aCollection 
+]
 
 { #category : #'as yet unclassified' }
 GPMethod >> implementorsClasses [
@@ -43,23 +56,35 @@ GPMethod >> numArgs: aNumber [
 	numArgs := aNumber
 ]
 
-{ #category : #initialization }
-GPMethod >> possibleSenders: variablesCollection [
-	|im|
-	im := self implementorsClasses .
-	(sendersCache notNil) ifTrue: [ ^ sendersCache  ].
-	sendersCache := (variablesCollection) select: [ :v | ((v types) intersection: im) size ~= 0 ] .
-	^ sendersCache 
-]
-
 { #category : #accessing }
-GPMethod >> sendersCache [
+GPMethod >> possibleSenders: variables [
+
+	sendersCache notNil ifTrue: [ ^ sendersCache ].
+	sendersCache := variables select: [ :v | 
+		                v types
+			                ifNil: [ true ]
+			                ifNotNil: [ v types includes: realClass ] ].
 	^ sendersCache
 ]
 
+{ #category : #'as yet unclassified' }
+GPMethod >> realClass [
+	^ realClass
+]
+
+{ #category : #'as yet unclassified' }
+GPMethod >> realClass: aClass [
+	realClass:= aClass
+]
+
 { #category : #accessing }
-GPMethod >> sendersCache: aCollection [ 
-	sendersCache:= aCollection 
+GPMethod >> result [
+	^ result
+]
+
+{ #category : #accessing }
+GPMethod >> result: types [ 
+	result:= types
 ]
 
 { #category : #accessing }
