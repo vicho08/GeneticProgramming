@@ -1,6 +1,10 @@
 Class {
 	#name : #GPNodeGeneratorCode,
 	#superclass : #GPNode,
+	#instVars : [
+		'nodeType',
+		'numArgs'
+	],
 	#category : #'GeneticProgramming-Core'
 }
 
@@ -39,6 +43,31 @@ GPNodeGeneratorCode >> crossOverTwoChildrenWith: anotherNode using: random [
 	^ { 
 		  child1.
 		  child2 }
+]
+
+{ #category : #accessing }
+GPNodeGeneratorCode >> nodeType [
+	^ nodeType
+
+]
+
+{ #category : #accessing }
+GPNodeGeneratorCode >> nodeType: aString [ 
+	"assigment, return or method call"
+	nodeType:= aString
+
+]
+
+{ #category : #accessing }
+GPNodeGeneratorCode >> numArgs [ 
+	^ numArgs
+
+]
+
+{ #category : #accessing }
+GPNodeGeneratorCode >> numArgs: num [
+	numArgs:= num
+
 ]
 
 { #category : #'as yet unclassified' }
