@@ -43,6 +43,22 @@ WeightGenerator >> compare: aName with: otherName [
 	^ ans at: l2 * a + l1
 ]
 
+{ #category : #accessing }
+WeightGenerator >> compareTokens: aName with: otherName [
+	|n n2 ans|
+	ans := 0.
+	n := aName splitOn: ' '.
+	n2:= otherName splitOn: ' '.
+	
+	[n size > n2 size] whileTrue: [n2 add: ''].
+	[n2 size > n size] whileTrue: [n add: ''].
+	
+	n doWithIndex: [ :w :i | 
+		ans:= ans + (self compare: w with: (n2 at: i))].
+	
+	^ ans
+]
+
 { #category : #'as yet unclassified' }
 WeightGenerator >> getDefault [ 
 	^dictionary at: #_default_

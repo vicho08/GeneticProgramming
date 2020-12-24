@@ -120,6 +120,7 @@ GPAbstractCodeGeneratorConfiguration >> methodNode [
 	res name: t.
 	res argsType: (mt args).
 	res returnType: (mt result).
+	res realClass: (mt realClass).
 	^ res 
 ]
 

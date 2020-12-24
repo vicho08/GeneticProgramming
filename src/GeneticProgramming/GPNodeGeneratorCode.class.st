@@ -5,7 +5,8 @@ Class {
 		'nodeType',
 		'numArgs',
 		'returnType',
-		'argsType'
+		'argsType',
+		'realClass'
 	],
 	#category : #'GeneticProgramming-Core'
 }
@@ -60,7 +61,7 @@ GPNodeGeneratorCode >> deepCopy [
 	| c |
 	c := GPNodeGeneratorCode new.
 	c nodeType: nodeType; evaluationBlock: evaluationBlock; printBlock: printBlock; name: name.
-	c numArgs:  numArgs; returnType: returnType.
+	c numArgs:  numArgs; returnType: returnType; realClass: realClass; argsType: argsType .
 	self children do: [ :child |
 		c addChild: child deepCopy ].
 	^ c
@@ -101,6 +102,16 @@ GPNodeGeneratorCode >> numArgs [
 GPNodeGeneratorCode >> numArgs: num [
 	numArgs:= num
 
+]
+
+{ #category : #accessing }
+GPNodeGeneratorCode >> realClass [
+	^ realClass 
+]
+
+{ #category : #accessing }
+GPNodeGeneratorCode >> realClass: aClass [
+	realClass:= aClass 
 ]
 
 { #category : #accessing }

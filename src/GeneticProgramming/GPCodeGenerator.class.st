@@ -44,8 +44,10 @@ GPCodeGenerator >> addWeights: aWeightGenerator [
 { #category : #'as yet unclassified' }
 GPCodeGenerator >> assignWeightTo: aMethod [
 	| w |
-	w:= (self weightGen) searchWeight: aMethod name.
-	aMethod weight: w.
+	"similarity"
+	w:= 1000 - (11* (weightGen compare: (aMethod name asString) with: (nameMethod asString))). 
+	(w> 0) ifTrue: [aMethod weight: w]
+	ifFalse: [aMethod weight: 1].
 ]
 
 { #category : #'as yet unclassified' }
