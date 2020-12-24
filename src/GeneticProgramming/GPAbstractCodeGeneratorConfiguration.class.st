@@ -19,7 +19,7 @@ Replace the value associated with x with the result of 'ops'
 		(children first printUsing: context), ' := ', (children second printUsing: context), ''].
 	res evaluationBlock: [ :children :context | 
 		context at: ((children first printUsing: context) asSymbol) put: (children second evaluateUsing: context)].
-	res type: 'assigment'.
+	res nodeType: 'assigment'.
 	res name: 'assigment'.
 	^ res
 ]
@@ -71,10 +71,10 @@ return 		:= ^ call
 call  			:= ((call) method [: args]  | Obj method [:args] 
 args 			:= call | Obj
 "
-	|f n| 
-	n := rootNode type. "number of args of the method or assigment"
-	
-	(n = 'assigment') ifTrue: [ n:= 0.
+	|f n nt | 
+	nt := rootNode nodeType. "assigment / method"
+	n := rootNode numArgs. "number of args of the method"
+	(nt = 'assigment') ifTrue: [ n:= 0.
 		rootNode addChild: self newTerminalVariableWithoutSelf].
 	
 	(depth = 1) 
@@ -115,8 +115,11 @@ GPAbstractCodeGeneratorConfiguration >> methodNode [
 		msplit doWithIndex: [:key :i | (i < msplit size) ifTrue: [ans:= ans , key , ': ' , ((children at: (i+1)) printUsing: context) , ' ']].
 		'(' , ans , ')']].
 
-	res type: (mt numArgs).
+	res nodeType: 'method'.
+	res numArgs: (mt numArgs).
 	res name: t.
+	res argsType: (mt args).
+	res returnType: (mt result).
 	^ res 
 ]
 
@@ -138,8 +141,10 @@ GPAbstractCodeGeneratorConfiguration >> mutate: individual [
 	individual children: newInd children.
 	individual printBlock: newInd printBlock.
 	individual evaluationBlock: newInd evaluationBlock.
-	individual type: newInd type.
+	individual nodeType: newInd nodeType.
 	individual name: newInd name.
+	individual numArgs: newInd numArgs.
+	individual returnType: newInd returnType.
 	individual fitnessCache: nil.
 ]
 
@@ -157,7 +162,7 @@ GPAbstractCodeGeneratorConfiguration >> newSenderVariable: aNameMethod [
 	res := GPNodeGeneratorCode new.
 	res printBlock: [ :children :context | t asString ].
 	res evaluationBlock: [ :children :context | context at: t]  .
-	res type: 'variable'.
+	res nodeType: 'variable'.
 	^ res
 ]
 
@@ -169,7 +174,8 @@ GPAbstractCodeGeneratorConfiguration >> newTerminalVariable [
 	res := GPNodeGeneratorCode new.
 	res printBlock: [ :children :context | t asString ].
 	res evaluationBlock: [ :children :context | context at: t]  .
-	res type: 'variable'.
+	res nodeType: 'variable'.
+	res returnType: (vt types).
 	^ res
 ]
 
@@ -188,7 +194,8 @@ GPAbstractCodeGeneratorConfiguration >> newTerminalVariableWithoutSelf [
 	res := GPNodeGeneratorCode  new.
 	res printBlock: [ :children :context | t asString ].
 	res evaluationBlock: [ :children :context | context at: t]  .
-	res type: 'variable'.
+	res nodeType: 'variable'.
+	res returnType: (vt types).
 	^ res
 ]
 
@@ -242,7 +249,7 @@ GPAbstractCodeGeneratorConfiguration >> returnNode [
 	res := GPNodeGeneratorCode new.
 	
 	res printBlock: [ :children :context | '^ ' , (children first printUsing: context), ' '].
-	res type: 'return'.
+	res nodeType: 'return'.
 	res name: 'return'.
 	^ res 
 ]

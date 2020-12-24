@@ -3,16 +3,28 @@ Class {
 	#superclass : #GPNode,
 	#instVars : [
 		'nodeType',
-		'numArgs'
+		'numArgs',
+		'returnType',
+		'argsType'
 	],
 	#category : #'GeneticProgramming-Core'
 }
+
+{ #category : #accessing }
+GPNodeGeneratorCode >> argsType [
+	^ argsType
+]
+
+{ #category : #accessing }
+GPNodeGeneratorCode >> argsType: aCollection [
+	argsType:= aCollection
+]
 
 { #category : #'as yet unclassified' }
 GPNodeGeneratorCode >> countCallMethods [
 	|total|
 	total:= 0.
-	(self type isNumber) ifTrue: [ total := total + 1 ].
+	(self nodeType = 'method') ifTrue: [ total := total + 1 ].
 	
 	(self children) do: [ :child |
 		total := total + child countCallMethods. ].
@@ -40,9 +52,30 @@ GPNodeGeneratorCode >> crossOverTwoChildrenWith: anotherNode using: random [
 		index2 := (random nextInteger: anotherNode numberOfNodes - 1) + 1.
 		child2 := anotherNode crossOverWith: self at: index2 at: index1 ].
 
-	^ { 
-		  child1.
-		  child2 }
+	^ { child1 . child2 }
+]
+
+{ #category : #operations }
+GPNodeGeneratorCode >> deepCopy [
+	| c |
+	c := GPNodeGeneratorCode new.
+	c nodeType: nodeType; evaluationBlock: evaluationBlock; printBlock: printBlock; name: name.
+	c numArgs:  numArgs; returnType: returnType.
+	self children do: [ :child |
+		c addChild: child deepCopy ].
+	^ c
+]
+
+{ #category : #operations }
+GPNodeGeneratorCode >> deepCopy: ind [
+	| c |
+	c := GPNodeGeneratorCode  new.
+	c nodeType: (ind nodeType); evaluationBlock: (ind evaluationBlock); printBlock: (ind printBlock); name: (ind name).
+	((ind nodeType) = 'method') ifTrue: [ c numArgs: (ind numArgs); returnType: (ind returnType)]
+	ifFalse:[c numArgs: nil; returnType: nil].
+	ind children do: [ :child |
+		c addChild: child deepCopy ].
+	^ c
 ]
 
 { #category : #accessing }
@@ -70,9 +103,19 @@ GPNodeGeneratorCode >> numArgs: num [
 
 ]
 
+{ #category : #accessing }
+GPNodeGeneratorCode >> returnType [
+	^ returnType
+]
+
+{ #category : #accessing }
+GPNodeGeneratorCode >> returnType: aCollection [ 
+	returnType:= aCollection
+]
+
 { #category : #'as yet unclassified' }
 GPNodeGeneratorCode >> verifyVariable: aIndividual [
 	|child|
 	child:= aIndividual children at: 1.
-	^ ((aIndividual type = 'assigment') and: (child print = 'self')) or: ((aIndividual type = 'assigment') and:(child type ~= 'variable'))
+	^ ((aIndividual nodeType = 'assigment') and: (child print = 'self')) or: ((aIndividual nodeType = 'assigment') and:(child nodeType ~= 'variable'))
 ]

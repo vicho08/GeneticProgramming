@@ -123,7 +123,7 @@ GPNode >> deepCopy [
 { #category : #operations }
 GPNode >> deepCopy: ind [
 	| c |
-	c := GPNodeGeneratorCode  new type: (ind type); evaluationBlock: (ind evaluationBlock); printBlock: (ind printBlock); name: (ind name).
+	c := GPNode new type: (ind type); evaluationBlock: (ind evaluationBlock); printBlock: (ind printBlock); name: (ind name).
 	ind children do: [ :child |
 		c addChild: child deepCopy ].
 	^ c
