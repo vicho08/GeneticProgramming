@@ -60,6 +60,19 @@ GPCodeGenerator >> assignWeights: arrayMethods [
 ]
 
 { #category : #'as yet unclassified' }
+GPCodeGenerator >> assignWeigthsVars: vars [
+	weightGen := WeightGenerator new.
+	vars do: [ :var |
+		(var name = #self) 
+			ifTrue: [ var weight: 1000 ]
+			ifFalse: [self assignWeightTo: var ].
+		 ].
+	sumWeightsAllVariables := 0.
+	sumWeightsAllVariables := (self acumulator: variables).
+
+]
+
+{ #category : #'as yet unclassified' }
 GPCodeGenerator >> calculateTotalTests [
 		|total classesTesting pa|
 		total:=0.
@@ -130,6 +143,17 @@ GPCodeGenerator >> createGPArgs: setArgs [
 		
 	
 	
+]
+
+{ #category : #'as yet unclassified' }
+GPCodeGenerator >> createGPArgs: setArgs class: aClass types: typeCollection [
+	^ setArgs collect: [ :arg | 
+		|var ts|
+		ts := (typeCollection at: arg).
+		(ts isNotNil) ifTrue: [ts:= (ts asOrderedCollection )].
+		var := GPVariable new name: arg;  nameClass: aClass; types: ts.
+		var.].
+
 ]
 
 { #category : #'as yet unclassified' }
@@ -354,23 +378,24 @@ GPCodeGenerator >> nameClass [
 
 { #category : #accessing }
 GPCodeGenerator >> nameClass: aClass [
-   |tmpClass vars w t|
+   |tmpClass vars t|
 	mainClass := aClass.
-	w:= 300.
+
 	vars:=  aClass instVarNames.
 	t := self typesBySpy: aClass.
-	variables addAll: (self createGPArgs: vars class: aClass  w: w types: t).
-	variables add: (GPVariable new  name: #self; weight: (300); nameClass: aClass; types: (aClass asOrderedCollection)).
-	self sumWeightsAllVariables: (self sumWeightsAllVariables ) +300.
+	variables addAll: (self createGPArgs: vars class: aClass types: t).
+	variables add: (GPVariable new  name: #self;  nameClass: aClass; types: (aClass asOrderedCollection)).
 	
 	tmpClass := aClass superclass.
 	[ tmpClass = Object ] whileFalse: [
 	t := self typesBySpy: tmpClass.
-	w := (w / 2) asFloat. 
-	variables addAll: (self createGPArgs: (tmpClass instVarNames) class: tmpClass w: w types: t).
+	
+	variables addAll: (self createGPArgs: (tmpClass instVarNames) class: tmpClass types: t).
 	  tmpClass := tmpClass superclass. ].
 
 	methods:= methods select: [ :m | (m possibleSenders: variables) size ~= 0 ]. 
+	
+	self assignWeigthsVars: variables. 
 	
 	
 ]
