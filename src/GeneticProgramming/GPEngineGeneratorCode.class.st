@@ -22,8 +22,8 @@ GPEngineGeneratorCode >> createNewGeneration [
 		newInd := newInds at: 1.
 		newInd2 := newInds at: 2.
 		n_calls:= (self configuration ) randomCalls.
-		[(self verifyCallsMethods: ({newInd . newInd2} asOrderedCollection) value: n_calls)]
-	 whileFalse: [ 
+		[((self verifyCallsMethods: ({newInd . newInd2} asOrderedCollection) value: n_calls) and:
+		(self verifyArguments: {newInd. newInd2}))] whileFalse: [ 
 		newInds:= self repeatOperatorsGenetics. 
 		newInd := newInds at:1.
 		newInd2 := newInds at: 2.].
@@ -83,6 +83,11 @@ GPEngineGeneratorCode >> totalFitnessOfGeneration [
 		(info > 0 )
 		ifTrue: [infoRoulette := infoRoulette +info] . ].
 	^total
+]
+
+{ #category : #'as yet unclassified' }
+GPEngineGeneratorCode >> verifyArguments: theIndividuals [
+ ^ (configuration verifyArgument: (theIndividuals first)) and: (configuration verifyArgument: (theIndividuals second))
 ]
 
 { #category : #'as yet unclassified' }
