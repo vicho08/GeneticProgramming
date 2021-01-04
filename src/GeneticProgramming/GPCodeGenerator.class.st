@@ -39,15 +39,37 @@ GPCodeGenerator >> addWeights: aWeightGenerator [
 	
 	self assignWeights: methods.
 	sumWeightsAllMethods := (self acumulator: methods).
+	
+	self assignWeigthsVars: variables. 
+	sumWeightsAllVariables := (self acumulator: variables).
 ]
 
 { #category : #'as yet unclassified' }
 GPCodeGenerator >> assignWeightTo: aMethod [
-	| w |
-	"similarity"
-	w:= 1000 - (11* (weightGen compare: (aMethod name asString) with: (nameMethod asString))). 
-	(w> 0) ifTrue: [aMethod weight: w]
-	ifFalse: [aMethod weight: 1].
+	| w wg|
+	wg := WeightGenerator new.
+	(weightGen = 'similarity')
+	ifTrue: [ 
+		w:= 1000 - (11* (wg compare: (aMethod name asString) with: (nameMethod asString))). 
+		(w> 0) 
+			ifTrue: [aMethod weight: w]
+			ifFalse: [aMethod weight: 1]. ].
+	(weightGen = 'default')
+	ifTrue: [ aMethod weight: 1 ].
+]
+
+{ #category : #'as yet unclassified' }
+GPCodeGenerator >> assignWeightToVar: aVar [
+	| w wg|
+	wg := WeightGenerator new.
+	(weightGen = 'similarity')
+	ifTrue: [ 
+		w:= 1000 - (11* (wg compare: (aVar name asString) with: (nameMethod asString))). 
+		(w> 0) 
+			ifTrue: [aVar weight: w]
+			ifFalse: [aVar weight: 1]. ].
+	(weightGen = 'default')
+	ifTrue: [ self weightByClass: aVar ].
 ]
 
 { #category : #'as yet unclassified' }
@@ -61,14 +83,12 @@ GPCodeGenerator >> assignWeights: arrayMethods [
 
 { #category : #'as yet unclassified' }
 GPCodeGenerator >> assignWeigthsVars: vars [
-	weightGen := WeightGenerator new.
 	vars do: [ :var |
 		(var name = #self) 
 			ifTrue: [ var weight: 1000 ]
-			ifFalse: [self assignWeightTo: var ].
+			ifFalse: [self assignWeightToVar: var ].
 		 ].
-	sumWeightsAllVariables := 0.
-	sumWeightsAllVariables := (self acumulator: variables).
+
 
 ]
 
@@ -395,7 +415,6 @@ GPCodeGenerator >> nameClass: aClass [
 
 	methods:= methods select: [ :m | (m possibleSenders: variables) size ~= 0 ]. 
 	
-	self assignWeigthsVars: variables. 
 	
 	
 ]
@@ -549,6 +568,18 @@ GPCodeGenerator >> verifyArgument: aIndividual [
 	
 	
 	^ aIndividual withAllChildren select: [ :node | (node nodeType = 'variable') and: (args includes: ((node print) asSymbol)) ] > 0
+]
+
+{ #category : #'as yet unclassified' }
+GPCodeGenerator >> weightByClass: aVar [
+	|w cClass|
+	w := 500.
+	cClass := mainClass.
+	[aVar nameClass = cClass] whileFalse: [ 
+		cClass := cClass superclass.
+		w := w /2. ].
+	
+	aVar weight: w.
 ]
 
 { #category : #accessing }
