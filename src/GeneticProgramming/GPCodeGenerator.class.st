@@ -34,8 +34,8 @@ GPCodeGenerator >> acumulator: ms [
 ]
 
 { #category : #adding }
-GPCodeGenerator >> addWeights: aHeuristicWeight [
-	weightGen := aHeuristicWeight.
+GPCodeGenerator >> addWeights: aWeightGenerator [
+	weightGen := aWeightGenerator.
 	
 	self assignWeights: methods.
 	sumWeightsAllMethods := (self acumulator: methods).
@@ -563,6 +563,16 @@ GPCodeGenerator >> variables [
 { #category : #accessing }
 GPCodeGenerator >> variables: aVariables [
 	variables := aVariables
+]
+
+{ #category : #'as yet unclassified' }
+GPCodeGenerator >> verifyArgument: aIndividual [
+	|c|
+	c:= self randomElementOf: (0 to: 9).
+	((args isEmpty) or: (c= 9)) ifTrue: [ ^ true ].
+	
+	
+	^ aIndividual withAllChildren select: [ :node | (node nodeType = 'variable') and: (args includes: ((node print) asSymbol)) ] > 0
 ]
 
 { #category : #'as yet unclassified' }
