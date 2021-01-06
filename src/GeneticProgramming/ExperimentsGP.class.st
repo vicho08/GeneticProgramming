@@ -147,7 +147,7 @@ ExperimentsGP >> totalSetters: methods [
    |a|
 	a := 0.
 	methods do: [ :array | 
-	( self isSetter: (array at: 1))
+	( (array at: 1) isSetter)
 	ifTrue: [ a := a + 1. ]].
 	^ a
 ]
