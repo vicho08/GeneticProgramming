@@ -89,7 +89,6 @@ GPCodeGenerator >> assignWeigthsVars: vars [
 			ifFalse: [self assignWeightToVar: var ].
 		 ].
 
-
 ]
 
 { #category : #'as yet unclassified' }
@@ -376,6 +375,11 @@ GPCodeGenerator >> isClass: aSymbol [
 					(OpalCompiler new
 						source: aSymbol;
 						evaluate)
+]
+
+{ #category : #accessing }
+GPCodeGenerator >> mainClass [
+	^ mainClass
 ]
 
 { #category : #accessing }
