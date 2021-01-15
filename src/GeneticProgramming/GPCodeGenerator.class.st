@@ -169,7 +169,9 @@ GPCodeGenerator >> createGPArgs: setArgs [
 GPCodeGenerator >> createGPArgs: setArgs class: aClass types: typeCollection [
 	^ setArgs collect: [ :arg | 
 		|var ts|
-		ts := (typeCollection at: arg).
+		ts := nil.
+		(typeCollection includes: arg) ifTrue:[
+		ts := (typeCollection at: arg)].
 		(ts isNotNil) ifTrue: [ts:= (ts asOrderedCollection )].
 		var := GPVariable new name: arg;  nameClass: aClass; types: ts.
 		var.].

@@ -22,14 +22,19 @@ GPEngineGeneratorCode >> createNewGeneration [
 		newInd := newInds at: 1.
 		newInd2 := newInds at: 2.
 		n_calls:= (self configuration ) randomCalls.
-		[((self verifyCallsMethods: ({newInd . newInd2} asOrderedCollection) value: n_calls) and:
-		(self verifyArguments: {newInd. newInd2}))] whileFalse: [ 
+		[self verifyCallsMethods: ({newInd . newInd2} asOrderedCollection) value: n_calls] whileFalse: [ 
 		newInds:= self repeatOperatorsGenetics. 
 		newInd := newInds at:1.
 		newInd2 := newInds at: 2.].
+		[(self verifyArguments: {newInd. newInd2})] whileFalse: [
+		
+		newInds:= self repeatOperatorsGenetics. 
+		newInd := newInds at:1.
+		newInd2 := newInds at: 2.  ].
 		newPopulation add: newInd.
 		newPopulation add: newInd2.  
 	].
+	
 	population := newPopulation.
 	fitnessOfPopulation := self totalFitnessOfGeneration 
 ]
