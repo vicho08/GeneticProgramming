@@ -566,14 +566,18 @@ GPCodeGenerator >> variables: aVariables [
 	variables := aVariables
 ]
 
-{ #category : #'as yet unclassified' }
+{ #category : #accessing }
 GPCodeGenerator >> verifyArgument: aIndividual [
-	|c|
-	c:= self randomElementOf: (0 to: 9).
-	((args isEmpty) or: (c= 9)) ifTrue: [ ^ true ].
-	
-	
-	^ aIndividual withAllChildren select: [ :node | (node nodeType = 'variable') and: (args includes: ((node print) asSymbol)) ] > 0
+
+	| c |
+	c := self randomElementOf: (0 to: 9).
+	args ifNil: [ ^ true ].
+	(args isEmpty or: c = 9) ifTrue: [ ^ true ].
+
+
+	^ aIndividual withAllChildren select: [ :node | 
+		  node nodeType = 'variable' and:
+			  (args includes: node print asSymbol) ] > 0
 ]
 
 { #category : #'as yet unclassified' }

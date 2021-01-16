@@ -81,6 +81,28 @@ ExperimentsGP >> isSetter: aMethod [
         and: ( body children first value name = variableName )
 ]
 
+{ #category : #'as yet unclassified' }
+ExperimentsGP >> simpleExperiment: aMethod fileName: aNameFile weightSystem: wg [
+	|g originalSource e ind | 
+	g:= GPCodeGenerator new codeBefore: '' codeAfter: '' onPackageNamed: 'Roassal3-Chart' onPackageTesting: 'Roassal3-Chart-Tests'.
+
+	originalSource := aMethod getSourceFromFile.
+	g nameMethod: (aMethod selector asString).
+	g nameClass: (aMethod methodClass).
+	g setOfVariables: ''.
+	
+	g addWeights: wg.
+
+	e := GPEngineGeneratorCode new.
+	e nameFile: aNameFile.
+	e configuration: g.
+	e execute.
+	ind := e pickBestIndividual.
+	g distanceFromSolutionOf: ind.
+	(aMethod methodClass) compile: originalSource.
+	^ ind
+]
+
 { #category : #accessing }
 ExperimentsGP >> sizeOfEachMethod: methods [
 	|sizing|

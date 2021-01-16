@@ -2,7 +2,8 @@ Class {
 	#name : #GPEngineGeneratorCode,
 	#superclass : #GPEngine,
 	#instVars : [
-		'infoRoulette'
+		'infoRoulette',
+		'nameFile'
 	],
 	#category : #'GeneticProgramming-Core'
 }
@@ -39,10 +40,54 @@ GPEngineGeneratorCode >> createNewGeneration [
 	fitnessOfPopulation := self totalFitnessOfGeneration 
 ]
 
+{ #category : #hooks }
+GPEngineGeneratorCode >> execute [
+
+	"
+	| e| 
+	e := self new.
+	e configuration: GPAritConfiguration new.
+	e execute.
+	"
+
+	| log stream best worse start time file|
+	self createInitialPopulation.
+	UIManager default informUserDuring: [ :bar | 
+		1 to: configuration numberOfGenerations do: [ :gen | 
+			bar label: gen asString.
+			self microPause.
+			start := Time now.
+			self createNewGeneration.
+			time := Time now asDuration - start asDuration.
+			log := GPLog new.
+			best := self fitnessOfBestIndividual.
+			worse := self fitnessOfWorstIndividual .
+			log generation: gen.
+			log bestFitnessValue: best.
+			log worstFitnessValue: worse.
+			logs add: log.
+
+			file := nameFile asFileReference. 
+			stream:= file writeStream. 
+			stream setToEnd.
+			stream
+				nextPutAll:
+					(gen asString) , ' ; ' , (best asString) , ' ; ' , (worse asString) , ';' , (time asString);
+				nextPutAll: String cr.
+			stream close.
+
+			self fitnessOfBestIndividual = 0 ifTrue: [ ^ self ] ] ]
+]
+
 { #category : #initialization }
 GPEngineGeneratorCode >> initialize [ 
 	super initialize.
 	infoRoulette := 0.
+]
+
+{ #category : #hooks }
+GPEngineGeneratorCode >> nameFile: aNameFile [
+	nameFile:= aNameFile
 ]
 
 { #category : #'as yet unclassified' }
