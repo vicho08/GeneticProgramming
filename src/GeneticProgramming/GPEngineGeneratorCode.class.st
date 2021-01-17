@@ -8,6 +8,49 @@ Class {
 	#category : #'GeneticProgramming-Core'
 }
 
+{ #category : #adding }
+GPEngineGeneratorCode >> addAnswerToFile [
+
+	| stream ind fit |
+	stream := nameFile asFileReference writeStream.
+	ind := self pickBestIndividual.
+	fit := self fitnessOfBestIndividual.
+	stream setToEnd.
+	stream
+		nextPutAll: ind print , ' ; ' , fit asString , ';';
+		nextPutAll: String cr.
+	stream close
+]
+
+{ #category : #adding }
+GPEngineGeneratorCode >> addLog: aDictionary [
+	|log best gen worse|
+	log := GPLog new.
+	gen := aDictionary at: #gen.
+	best := aDictionary at: #best.
+	worse := aDictionary at: #worse.
+	log generation: gen.
+	log bestFitnessValue: best.
+	log worstFitnessValue: worse.
+	logs add: log.
+]
+
+{ #category : #adding }
+GPEngineGeneratorCode >> addToFile: aDictionary [
+"put info to the end of file"
+	|file stream gen best worse time|
+	file := nameFile asFileReference. 
+	stream:= file writeStream. 
+	gen := aDictionary at: #gen.
+	best := aDictionary at: #best.
+	worse := aDictionary at: #worse.
+	time := aDictionary at: #time.
+	stream setToEnd.
+	stream nextPutAll: (gen asString) , ' ; ' , (best asString) , ' ; ' , (worse asString) , ';' , 
+	(time asString) , String cr.
+	stream close.
+]
+
 { #category : #evolution }
 GPEngineGeneratorCode >> createNewGeneration [
 	"The argument is a collection of GPNode, each element being the root node of an individual."
@@ -44,13 +87,10 @@ GPEngineGeneratorCode >> createNewGeneration [
 GPEngineGeneratorCode >> execute [
 
 	"
-	| e| 
-	e := self new.
-	e configuration: GPAritConfiguration new.
-	e execute.
+	Execute the technique
 	"
 
-	| log stream best worse start time file|
+	| best worse start time dict|
 	self createInitialPopulation.
 	UIManager default informUserDuring: [ :bar | 
 		1 to: configuration numberOfGenerations do: [ :gen | 
@@ -59,24 +99,18 @@ GPEngineGeneratorCode >> execute [
 			start := Time now.
 			self createNewGeneration.
 			time := Time now asDuration - start asDuration.
-			log := GPLog new.
 			best := self fitnessOfBestIndividual.
 			worse := self fitnessOfWorstIndividual .
-			log generation: gen.
-			log bestFitnessValue: best.
-			log worstFitnessValue: worse.
-			logs add: log.
+			dict:= (Dictionary newFrom: { #gen -> gen. #best -> best. #worse -> worse . #time -> time}).
+			
+			self addLog: dict.			
+			self addToFile: dict.
 
-			file := nameFile asFileReference. 
-			stream:= file writeStream. 
-			stream setToEnd.
-			stream
-				nextPutAll:
-					(gen asString) , ' ; ' , (best asString) , ' ; ' , (worse asString) , ';' , (time asString);
-				nextPutAll: String cr.
-			stream close.
-
-			self fitnessOfBestIndividual = 0 ifTrue: [ ^ self ] ] ]
+			self fitnessOfBestIndividual = 0 ifTrue: 
+			[ 
+			self addAnswerToFile. 
+			^ self ] ] ].
+			self addAnswerToFile. 
 ]
 
 { #category : #initialization }
