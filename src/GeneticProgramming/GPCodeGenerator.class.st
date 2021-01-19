@@ -575,9 +575,9 @@ GPCodeGenerator >> verifyArgument: aIndividual [
 	(args isEmpty or: c = 9) ifTrue: [ ^ true ].
 
 
-	^ aIndividual withAllChildren select: [ :node | 
+	^ (aIndividual withAllChildren select: [ :node | 
 		  node nodeType = 'variable' and:
-			  (args includes: node print asSymbol) ] > 0
+			  (args includes: node print asSymbol) ]) size = (args size)
 ]
 
 { #category : #'as yet unclassified' }
