@@ -25,23 +25,13 @@ Class {
 	#category : #'GeneticProgramming-CodeGenerator'
 }
 
-{ #category : #'as yet unclassified' }
-GPCodeGenerator >> acumulator: ms [
-	|sum|
-	sum := 0.
-	ms do: [ :m | sum := sum + (m weight)].
-	^ sum
-]
-
 { #category : #adding }
 GPCodeGenerator >> addWeights: aWeightGenerator [
 	weightGen := aWeightGenerator.
 	
 	self assignWeights: methods.
-	sumWeightsAllMethods := (self acumulator: methods).
-	
 	self assignWeigthsVars: variables. 
-	sumWeightsAllVariables := (self acumulator: variables).
+	
 ]
 
 { #category : #'as yet unclassified' }
@@ -74,9 +64,12 @@ GPCodeGenerator >> assignWeightToVar: aVar [
 
 { #category : #'as yet unclassified' }
 GPCodeGenerator >> assignWeights: arrayMethods [
-	
+	|sum|
+	sumWeightsAllMethods := 0.
+	sum :=0.
 	arrayMethods do: [ :method |
 		self assignWeightTo: method .
+		sum := sum + (method weight).
 		 ]
 
 ]
@@ -288,7 +281,7 @@ GPCodeGenerator >> distanceFromSolutionOf: individual [
 				running:= class buildSuite run.
 				eval := eval + (running passed size)]
 			ifFalse: [ 
-				self inform: 'Not terminated'. 
+				"self inform: 'Not terminated'. "
     			p terminate ]].
 	
 	"the fitness is the difference between total tests and passed tests"

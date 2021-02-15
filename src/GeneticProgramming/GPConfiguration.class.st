@@ -100,11 +100,11 @@ GPConfiguration >> randomBoolean [
 { #category : #'private-random operations' }
 GPConfiguration >> randomElementOf: aCollection [
 
-	^ aCollection at: (random nextInteger: aCollection size)
+	^ aCollection at: (random nextInt: aCollection size)
 ]
 
 { #category : #'private-random operations' }
 GPConfiguration >> randomInt: anInt [
 
-	^ random nextInteger: anInt
+	^ random nextInt: anInt
 ]
