@@ -1,8 +1,15 @@
 # Búsqueda Automatizada de Parches para Corregir Errores de Programas usando Programación Genética
 
-* Resumen
 
-En este primer acercamiento, se realizan experimentos sobre programas escritos en Pharo. Se buscan parches simples (agregar una línea de código nueva). 
+## Instalación 
+
+
+```Smalltalk
+Metacello new
+ baseline:'GeneticProgramming';
+repository: 'github://vicho08/GeneticProgramming';
+ load.
+ ```
 
 * Requerimientos
 
