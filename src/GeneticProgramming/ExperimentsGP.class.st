@@ -46,7 +46,7 @@ ExperimentsGP >> countCalls: method [
 { #category : #operators }
 ExperimentsGP >> getMethods: aPackage in: aPackageTesting [
    |package methods rs|
-	package := (RPackageOrganizer default packageNamed: 'Roassal3-Chart'). " Paquete para experimentos "
+	package := (RPackageOrganizer default packageNamed: aPackage). " Paquete para experimentos "
 	methods := package methods. "select all methods "
 	
 	rs := methods select: [ :m |
@@ -57,7 +57,7 @@ ExperimentsGP >> getMethods: aPackage in: aPackageTesting [
 	"delete abstract methods"
 	methods := rs select: [ :m | (m  isAbstract) = false ].
 	
-	methods := self testingMethods: methods in: aPackageTesting.
+	methods := self testingMethods: methods package: aPackage in: aPackageTesting.
 	
 	methods := methods select: [ :m | m blockNodes size = 0 ]. "methods wihout blocks"
 	
@@ -128,6 +128,25 @@ ExperimentsGP >> testingMethods: methods in: packageTest [
 		|running|
 		running:= class buildSuite run.
 		e := e + (running passed size)]. e] onPackageNamed: 'Roassal3-Chart').
+
+	ds := (d allExecutedMethods) collect: [ :m | m selector ].
+
+ 	^ methods select: [ :m | ds includes: (m selector) ].
+]
+
+{ #category : #operators }
+ExperimentsGP >> testingMethods: methods package: aPackage in: packageTest [
+	|d ds|
+	d:= (Dep profile: [
+	   |e pa classesTesting|
+		e:=0.
+		pa:= (RPackageOrganizer default packageNamed: packageTest).
+		classesTesting := pa classes asOrderedCollection .	
+		classesTesting do: [ :class |
+		|running|
+		(class class canUnderstand: #buildSuite) ifTrue: [ 
+		running:= class buildSuite run.
+		e := e + (running passed size)]. e]] onPackageNamed: aPackage ).
 
 	ds := (d allExecutedMethods) collect: [ :m | m selector ].
 

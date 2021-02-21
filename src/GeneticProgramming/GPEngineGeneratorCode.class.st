@@ -94,7 +94,7 @@ GPEngineGeneratorCode >> execute [
 	self createInitialPopulation.
 	UIManager default informUserDuring: [ :bar | 
 		1 to: configuration numberOfGenerations do: [ :gen | 
-			"bar label: gen asString."
+			bar label: gen asString.
 			self microPause.
 			start := Time now.
 			self createNewGeneration.

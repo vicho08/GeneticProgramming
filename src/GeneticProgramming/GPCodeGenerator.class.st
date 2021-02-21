@@ -92,8 +92,9 @@ GPCodeGenerator >> calculateTotalTests [
 		classesTesting := pa classes asOrderedCollection .	
 		classesTesting do: [ :class |
 		|running|
+		(class class canUnderstand: #buildSuite) ifTrue: [ 
 		running:= class buildSuite run.
-		total:= total + (running passed size)]. 
+		total:= total + (running passed size)]]. 
 		^ total
 ]
 
@@ -202,7 +203,8 @@ GPCodeGenerator >> createSpy [
 	ts :=(Type profile: [ 
 	classesTesting do: [ :class |
 		|running|
-		running:= class buildSuite run.]] onPackageNamed: mainPackage ). 
+		(class class canUnderstand: #buildSuite) ifTrue: [ 
+		running:= class buildSuite run.]]] onPackageNamed: mainPackage ). 
 	spyCache:= ts.
 	^ ts 
 ]
@@ -265,7 +267,7 @@ GPCodeGenerator >> distanceFromSolutionOf: individual [
 	
 	eval := 0.
 	classesTesting := packageTesting classes.
-	
+	classesTesting := classesTesting select: [ :class  | class  class canUnderstand: #buildSuite].
 	"classesTesting do: [ :class |
 		[|running|
 		running:= class buildSuite run.
