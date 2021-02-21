@@ -5,10 +5,10 @@
 
 
 ```Smalltalk
-Metacello new
- baseline:'GeneticProgramming';
-repository: 'github://vicho08/GeneticProgramming';
- load.
+	Metacello new
+ 		baseline:'GeneticProgramming';
+		repository: 'github://vicho08/GeneticProgramming';
+ 		load.
  ```
 
 * Requerimientos
