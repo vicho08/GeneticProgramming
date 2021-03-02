@@ -78,11 +78,16 @@ GPCodeGenerator >> assignWeights: arrayMethods [
 
 { #category : #'as yet unclassified' }
 GPCodeGenerator >> assignWeigthsVars: vars [
+	|sum|
+	sum :=0.
+	sumWeightsAllVariables :=0.
 	vars do: [ :var |
 		(var name = #self) 
 			ifTrue: [ var weight: 1000 ]
 			ifFalse: [self assignWeightToVar: var ].
+		sum := sum + (var weight).
 		 ].
+	sumWeightsAllVariables := sum.
 
 ]
 
