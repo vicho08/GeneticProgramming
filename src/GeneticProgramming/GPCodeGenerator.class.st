@@ -70,7 +70,9 @@ GPCodeGenerator >> assignWeights: arrayMethods [
 	arrayMethods do: [ :method |
 		self assignWeightTo: method .
 		sum := sum + (method weight).
-		 ]
+		 ].
+	sumWeightsAllMethods := sum.
+	
 
 ]
 
