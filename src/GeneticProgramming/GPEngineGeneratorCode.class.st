@@ -3,7 +3,8 @@ Class {
 	#superclass : #GPEngine,
 	#instVars : [
 		'infoRoulette',
-		'nameFile'
+		'nameFile',
+		'windows'
 	],
 	#category : #'GeneticProgramming-Core'
 }
@@ -57,7 +58,7 @@ GPEngineGeneratorCode >> createNewGeneration [
 	"check if problem solved"
 	| newInd newInd2 newInds newPopulation sizeHalf n_calls|
 	(self distanceFromSolutionOf: self pickBestIndividual) = 0 ifTrue: [ ^ self ].
-	
+	self removeNewWindows.
 	newPopulation := OrderedCollection new. 
 	newPopulation add: self pickBestIndividual.
 	sizeHalf := ((population size -1) / 2.0) ceiling.
@@ -78,9 +79,18 @@ GPEngineGeneratorCode >> createNewGeneration [
 		newPopulation add: newInd.
 		newPopulation add: newInd2.  
 	].
-	
+	self removeNewWindows.
 	population := newPopulation.
 	fitnessOfPopulation := self totalFitnessOfGeneration 
+]
+
+{ #category : #'as yet unclassified' }
+GPEngineGeneratorCode >> createWindows [
+	windows := OrderedCollection new. 
+	SystemWindow withAllSubclasses do: [ :cls |
+    	windows addAll: (cls allInstances) ].
+
+	
 ]
 
 { #category : #hooks }
@@ -117,11 +127,20 @@ GPEngineGeneratorCode >> execute [
 GPEngineGeneratorCode >> initialize [ 
 	super initialize.
 	infoRoulette := 0.
+	self createWindows.
 ]
 
 { #category : #hooks }
 GPEngineGeneratorCode >> nameFile: aNameFile [
 	nameFile:= aNameFile
+]
+
+{ #category : #removing }
+GPEngineGeneratorCode >> removeNewWindows [
+	|newWindows|
+	newWindows := OrderedCollection new.
+	SystemWindow withAllSubclasses do: [ :cls | newWindows addAll: (cls allInstances) ].
+	(newWindows copyWithoutAll: windows) do: #delete.
 ]
 
 { #category : #'as yet unclassified' }
@@ -155,17 +174,14 @@ GPEngineGeneratorCode >> rouletteSelection [
 
 { #category : #evolution }
 GPEngineGeneratorCode >> totalFitnessOfGeneration [
-	|total totalTests|
+	|total|
 	total:= 0.
-	infoRoulette := 0.
-	totalTests:= (self configuration) totalTests.
 	population do: [ :individual  | 
-		|dis info|
+		|dis|
 		dis := (self distanceFromSolutionOf: individual).
-		total := total + dis.
-		info := (dis * -1) + totalTests.
-		(info > 0 )
-		ifTrue: [infoRoulette := infoRoulette +info] . ].
+		self removeNewWindows.
+		total := total + dis. ].
+	
 	^total
 ]
 
