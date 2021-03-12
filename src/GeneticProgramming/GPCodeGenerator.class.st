@@ -168,7 +168,7 @@ GPCodeGenerator >> createGPArgs: setArgs class: aClass types: typeCollection [
 	^ setArgs collect: [ :arg | 
 		|var ts|
 		ts := nil.
-		(typeCollection includes: arg) ifTrue:[
+		(typeCollection keys includes: arg) ifTrue:[
 		ts := (typeCollection at: arg)].
 		(ts isNotNil) ifTrue: [ts:= (ts asOrderedCollection )].
 		var := GPVariable new name: arg;  nameClass: aClass; types: ts.
@@ -543,6 +543,7 @@ GPCodeGenerator >> types: aDictionary [
 { #category : #'as yet unclassified' }
 GPCodeGenerator >> typesBySpy: aClass [
 	|vars cs vs ans ms|
+	"types of intance variables"
 	
 	vars:= aClass instVarNames.
 	cs := aClass name asSymbol.
@@ -550,7 +551,9 @@ GPCodeGenerator >> typesBySpy: aClass [
 	vs := ms select: [ :m | ((m originalMethod) isReturnField) and: (cs = (m classSpy className))] .
 	ans:= Dictionary new. 
 	vs do: [ :m | 
-		ans at: (m selector) put: m returnType ].
+		|t|
+		t:= [m returnType] on: Exception do: [ nil ].
+		ans at: (m selector) put: t].
 	
 	^ans
 ]
