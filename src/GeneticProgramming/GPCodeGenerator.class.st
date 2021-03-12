@@ -93,15 +93,13 @@ GPCodeGenerator >> assignWeigthsVars: vars [
 
 { #category : #'as yet unclassified' }
 GPCodeGenerator >> calculateTotalTests [
-		|total classesTesting pa|
+		|total|
 		total:=0.
-		pa:= (RPackageOrganizer default packageNamed: (packageTesting name asString) ).
-		classesTesting := pa classes asOrderedCollection .	
-		classesTesting do: [ :class |
-		|running|
-		(class class canUnderstand: #buildSuite) ifTrue: [ 
+			
+		(packageTesting classesTesting ) do: [ :class |
+		|running|		
 		running:= class buildSuite run.
-		total:= total + (running passed size)]]. 
+		total:= total + (running passed size)]. 
 		^ total
 ]
 
@@ -203,15 +201,15 @@ GPCodeGenerator >> createGPArgs: setArgs class: aClass w: w types: typeCollectio
 
 { #category : #'as yet unclassified' }
 GPCodeGenerator >> createSpy [
-	|classesTesting ts|
+	|ts|
 	(spyCache isNotNil) ifTrue: [ ^ spyCache ].
-	classesTesting := packageTesting  classes asOrderedCollection .	
+	
 		 
 	ts :=(Type profile: [ 
-	classesTesting do: [ :class |
+	(packageTesting classesTesting ) do: [ :class |
 		|running|
-		(class class canUnderstand: #buildSuite) ifTrue: [ 
-		running:= class buildSuite run.]]] onPackageNamed: mainPackage ). 
+		
+		running:= class buildSuite run.]] onPackageNamed: mainPackage ). 
 	spyCache:= ts.
 	^ ts 
 ]
@@ -449,7 +447,7 @@ GPCodeGenerator >> packageTesting [
 
 { #category : #'as yet unclassified' }
 GPCodeGenerator >> packageTesting: aString [
-	packageTesting:= (RPackageOrganizer default packageNamed: aString).
+	packageTesting:= GPPackage new name: aString.
 ]
 
 { #category : #'as yet unclassified' }
