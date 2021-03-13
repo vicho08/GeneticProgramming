@@ -51,14 +51,15 @@ GPAbstractCodeGeneratorConfiguration >> createNewIndividual [
 	
 	| rootNode m c|
 	c:= self randomElementOf: (0 to: 99).
-	 (c<63) ifTrue: [  
+	"60% return method, 25% complex method, and 15% assigment node"
+	 (c<60) ifTrue: [  
 		rootNode := self returnNode.
 		m := self newMethod.
 		rootNode addChild: m.
 		(self createNewIndividualRoot: m depth: (self randomCalls)).
 		^ rootNode].
-	 (c<89) ifTrue: [ rootNode := self newMethod ].
-	(c> 88 and: (c<100)) ifTrue: [ rootNode := self assigmentNode  ].  
+	 (c<85) ifTrue: [ rootNode := self newMethod ].
+	(c> 84) ifTrue: [ rootNode := self assigmentNode  ].  
 	self createNewIndividualRoot: rootNode depth: (self randomCalls).
 	^ rootNode
 ]
@@ -66,10 +67,11 @@ GPAbstractCodeGeneratorConfiguration >> createNewIndividual [
 { #category : #'private-operation' }
 GPAbstractCodeGeneratorConfiguration >> createNewIndividualRoot: rootNode depth: depth [ 
 "
-expr 			:= return | call
+expr 			:= return | call | assigment 
 return 		:= ^ call
 call  			:= ((call) method [: args]  | Obj method [:args] 
 args 			:= call | Obj
+assigment 	:= Obj := call
 "
 	|f n nt | 
 	nt := rootNode nodeType. "assigment / method"
@@ -183,13 +185,9 @@ GPAbstractCodeGeneratorConfiguration >> newTerminalVariable [
 { #category : #'instance creation' }
 GPAbstractCodeGeneratorConfiguration >> newTerminalVariableWithoutSelf [
 	| res vt t|
-	vt :=(self pickRandomVariable: (self variables) with: (self randomElementOf: (0 to: (self sumWeightsAllVariables)))).
+	"Variable cannot be self"
+	vt := self pickRandomVariableWithoutSelf: (self variables) with: (self randomElementOf: (0 to: (self sumWeightsAllVariables))).
 	t := vt name.
-	
-	"Variable cant not be self"
-	[ t = #self ] whileTrue: [ 
-	 vt :=(self pickRandomVariable: (self variables) with: (self randomElementOf: (0 to: (self sumWeightsAllVariables)))).
-	t := vt name.].
 	
 	
 	res := GPNodeGeneratorCode  new.
@@ -218,6 +216,19 @@ GPAbstractCodeGeneratorConfiguration >> pickRandomVariable: vars with: w [
 	^ vars detect: [ :mw | 
 		acc := acc + (mw weight).
 		(acc >= w) ].
+	
+]
+
+{ #category : #'as yet unclassified' }
+GPAbstractCodeGeneratorConfiguration >> pickRandomVariableWithoutSelf: vars with: w [
+	|vt |
+	vt := self pickRandomVariable: vars with: w.
+	
+	"Variable cant not be self"
+	[ (vt name) = #self ] whileTrue: [ 
+	 vt :=(self pickRandomVariable: (self variables) with: (self randomElementOf: (0 to: (self sumWeightsAllVariables)))). ].
+	
+	^ vt 
 	
 ]
 
