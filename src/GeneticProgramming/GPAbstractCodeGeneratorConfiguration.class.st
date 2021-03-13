@@ -21,6 +21,7 @@ Replace the value associated with x with the result of 'ops'
 		context at: ((children first printUsing: context) asSymbol) put: (children second evaluateUsing: context)].
 	res nodeType: 'assigment'.
 	res name: 'assigment'.
+	res numArgs: 0.
 	^ res
 ]
 
@@ -49,12 +50,12 @@ GPAbstractCodeGeneratorConfiguration >> createNewIndividual [
 	b
 	"
 	
-	| rootNode m c|
+	| rootNode c|
 	c:= self randomElementOf: (0 to: 99).
 	"60% return method, 25% complex method, and 15% assigment node"
-	 (c<60) ifTrue: [ rootNode := self returnNode].
-	 (c<85) ifTrue: [ rootNode := self newMethod ].
-	(c> 84) ifTrue: [ rootNode := self assigmentNode  ].  
+	 (c > 84) ifTrue: [ rootNode := self assigmentNode].
+	 (c < 85) ifTrue: [ rootNode := self newMethod ]. 
+	 (c < 60) ifTrue: [ rootNode := self returnNode].
 	self createNewIndividualRoot: rootNode depth: (self randomCalls).
 	^ rootNode
 ]
@@ -62,16 +63,16 @@ GPAbstractCodeGeneratorConfiguration >> createNewIndividual [
 { #category : #'private-operation' }
 GPAbstractCodeGeneratorConfiguration >> createNewIndividualRoot: rootNode depth: depth [ 
 "
-expr 			:= return | call | assigment 
+expr (rootNode)			:= return | call | assigment 
 return 		:= ^ call
 call  			:= ((call) method [: args]  | Obj method [:args] 
 args 			:= call | Obj
 assigment 	:= Obj := call
 "
 	|f n nt | 
-	nt := rootNode nodeType. "assigment / method"
-	n := rootNode numArgs. "number of args of the method"
-	(nt = 'assigment') ifTrue: [ n:= 0.
+	nt := rootNode nodeType. "assigment / method / return"
+	n := rootNode numArgs. "number of args of the typeNode"
+	(nt = 'assigment') ifTrue: [
 		rootNode addChild: self newTerminalVariableWithoutSelf].
 	
 	(depth = 1) 
@@ -80,7 +81,7 @@ assigment 	:= Obj := call
 			rootNode addChild: self newTerminalVariable].
 			^self].
 		
-	0 to: n do: [ :i |
+	0 to: n do: [ :i | "33% cut tree"
 		((self randomElementOf: (0 to: 9)) <3)
 		ifTrue: [ 
 			rootNode addChild: self newTerminalVariable ]
@@ -258,6 +259,7 @@ GPAbstractCodeGeneratorConfiguration >> returnNode [
 	res printBlock: [ :children :context | '^ ' , (children first printUsing: context), ' '].
 	res nodeType: 'return'.
 	res name: 'return'.
+	res numArgs: 0.
 	^ res 
 ]
 
