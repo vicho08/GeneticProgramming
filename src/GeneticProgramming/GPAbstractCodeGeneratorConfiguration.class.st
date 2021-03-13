@@ -52,12 +52,7 @@ GPAbstractCodeGeneratorConfiguration >> createNewIndividual [
 	| rootNode m c|
 	c:= self randomElementOf: (0 to: 99).
 	"60% return method, 25% complex method, and 15% assigment node"
-	 (c<60) ifTrue: [  
-		rootNode := self returnNode.
-		m := self newMethod.
-		rootNode addChild: m.
-		(self createNewIndividualRoot: m depth: (self randomCalls)).
-		^ rootNode].
+	 (c<60) ifTrue: [ rootNode := self returnNode].
 	 (c<85) ifTrue: [ rootNode := self newMethod ].
 	(c> 84) ifTrue: [ rootNode := self assigmentNode  ].  
 	self createNewIndividualRoot: rootNode depth: (self randomCalls).
