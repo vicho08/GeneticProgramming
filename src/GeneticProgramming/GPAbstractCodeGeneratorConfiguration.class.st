@@ -79,7 +79,7 @@ assigment 	:= Obj := call
 		ifTrue: [ 0 to: n do: 
 			[ :i | 
 			rootNode addChild: self newTerminalVariable].
-			^self].
+			^ self].
 		
 	0 to: n do: [ :i | "33% cut tree"
 		((self randomElementOf: (0 to: 9)) <3)

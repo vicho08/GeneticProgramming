@@ -26,6 +26,17 @@ Class {
 }
 
 { #category : #adding }
+GPCodeGenerator >> addSelf [ 
+	variables add: (GPVariable new  name: #self;  nameClass: mainClass ; types: (mainClass asOrderedCollection)).
+]
+
+{ #category : #adding }
+GPCodeGenerator >> addVariables: aClass [
+
+	variables addAll: (self createGPArgs: (aClass instVarNames) class: aClass types: (self typesBySpy: aClass)).
+]
+
+{ #category : #adding }
 GPCodeGenerator >> addWeights: aWeightGenerator [
 	weightGen := aWeightGenerator.
 	
@@ -403,20 +414,17 @@ GPCodeGenerator >> nameClass [
 
 { #category : #accessing }
 GPCodeGenerator >> nameClass: aClass [
-   |tmpClass vars t|
+   |tmpClass|
 	mainClass := aClass.
-
-	vars:=  aClass instVarNames.
-	t := self typesBySpy: aClass.
-	variables addAll: (self createGPArgs: vars class: aClass types: t).
-	variables add: (GPVariable new  name: #self;  nameClass: aClass; types: (aClass asOrderedCollection)).
+	
+	self addSelf.
+	self addVariables: aClass.
+	
 	
 	tmpClass := aClass superclass.
 	[ tmpClass = Object ] whileFalse: [
-	t := self typesBySpy: tmpClass.
-	
-	variables addAll: (self createGPArgs: (tmpClass instVarNames) class: tmpClass types: t).
-	  tmpClass := tmpClass superclass. ].
+		self addVariables: tmpClass. 
+		tmpClass := tmpClass superclass. ].
 
 	methods:= methods select: [ :m | (m possibleSenders: variables) size ~= 0 ]. 
 	

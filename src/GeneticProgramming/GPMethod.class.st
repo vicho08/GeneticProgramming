@@ -33,7 +33,7 @@ GPMethod >> implementorsClasses [
 { #category : #initialization }
 GPMethod >> initialize [ 
 	super initialize .
-	sendersCache := nil.
+
 ]
 
 { #category : #accessing }

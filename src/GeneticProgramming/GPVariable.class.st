@@ -41,7 +41,7 @@ GPVariable >> types: aCollection [
 	"possible types of a variable by TypeCollector"
 
 	types := aCollection isNotNil
-		         ifTrue: [ aCollection collect: [ :v | v name] ]
+		         ifTrue: [ aCollection collect: [ :v | v ] ]
 		         ifFalse: [ nil ]
 ]
 
