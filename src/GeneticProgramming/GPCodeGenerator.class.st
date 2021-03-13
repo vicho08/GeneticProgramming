@@ -241,7 +241,7 @@ GPCodeGenerator >> distanceFromSolutionOf: individual [
 	"This method has to return a number that describes how close the individual is to the solution.
 	If this returns 0, then the individual is a perfect match
 	"
-	|codeToCompile eval penalty classesTesting|
+	|codeToCompile eval penalty|
 	individual fitnessCache ifNotNil: [ ^ individual fitnessCache ].
 	codeToCompile :=
 		(self setContractMethod ) , String cr,
@@ -271,14 +271,13 @@ GPCodeGenerator >> distanceFromSolutionOf: individual [
 
 	
 	eval := 0.
-	classesTesting := packageTesting classes.
-	classesTesting := classesTesting select: [ :class  | class  class canUnderstand: #buildSuite].
+	
 	"classesTesting do: [ :class |
 		[|running|
 		running:= class buildSuite run.
 		eval := eval + (running passed size) ] on: Halt do: [^1000]]."
 
-	classesTesting do: [ :class |
+	(packageTesting classesTesting )  do: [ :class |
 		|running p|
 		p := [ class buildSuite run.] newProcess.
 		p resume.
