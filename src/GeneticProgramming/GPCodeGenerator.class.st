@@ -5,7 +5,7 @@ Class {
 		'args',
 		'variables',
 		'classes',
-		'types',
+		'typesSpyCache',
 		'codeBefore',
 		'codeAfter',
 		'respondsVariables',
@@ -167,6 +167,27 @@ GPCodeGenerator >> codeBefore: aCode codeAfter: anOtherCode onPackageNamed: aPac
 ]
 
 { #category : #'as yet unclassified' }
+GPCodeGenerator >> codeToCompile: ind [
+"Return the source code of any individual"
+	^	(self setContractMethod ) , String cr,
+		variablesMethod , String cr,
+		codeBefore, String cr,
+		(ind print),
+		'. "<== adding line"', String cr,
+		codeAfter.
+
+]
+
+{ #category : #compiling }
+GPCodeGenerator >> compileCode: sourceCode [
+	[SystemAnnouncer uniqueInstance 
+		suspendAllWhileStoring: [ mainClass compile: sourceCode].]
+	on: Exception
+	do: [ ^1000 ].
+
+]
+
+{ #category : #'as yet unclassified' }
 GPCodeGenerator >> createGPArgs: setArgs [
 	^ self createGPArgs: setArgs class: (self nameClass ) w: 1000.
 		
@@ -254,20 +275,10 @@ GPCodeGenerator >> distanceFromSolutionOf: individual [
 	"
 	|codeToCompile eval penalty|
 	individual fitnessCache ifNotNil: [ ^ individual fitnessCache ].
-	codeToCompile :=
-		(self setContractMethod ) , String cr,
-		variablesMethod , String cr,
-		"'Halt onCount: 1000.' , String cr, "
-		codeBefore, String cr,
-		(individual print),
-		'. "<== adding line"', String cr,
-		codeAfter.
+	codeToCompile := self codeToCompile: individual.	
 	
-	
-	[SystemAnnouncer uniqueInstance 
-		suspendAllWhileStoring: [ mainClass compile: codeToCompile ].				]
-	on: Exception
-	do: [ ^1000 ].	
+	self tryToCompileCode: codeToCompile . 
+		
 	penalty := individual numberOfNodes <= 10
 		ifTrue: [ 0 ]
 		ifFalse: [ 1000].
@@ -535,16 +546,6 @@ GPCodeGenerator >> testing: aTestClass [
 { #category : #accessing }
 GPCodeGenerator >> totalTests [
 	^ totalTests 
-]
-
-{ #category : #accessing }
-GPCodeGenerator >> types [
-	^types
-]
-
-{ #category : #accessing }
-GPCodeGenerator >> types: aDictionary [
-	types:= aDictionary 
 ]
 
 { #category : #'as yet unclassified' }
