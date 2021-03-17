@@ -548,6 +548,16 @@ GPCodeGenerator >> totalTests [
 	^ totalTests 
 ]
 
+{ #category : #compiling }
+GPCodeGenerator >> tryToCompileCode: sourceCode [
+"try to compile source code, if not return a high value fitness"
+	[SystemAnnouncer uniqueInstance 
+		suspendAllWhileStoring: [ mainClass compile: sourceCode].]
+	on: Exception
+	do: [ ^10000 ].
+
+]
+
 { #category : #'as yet unclassified' }
 GPCodeGenerator >> typesBySpy: aClass [
 	|vars cs vs ans ms|
