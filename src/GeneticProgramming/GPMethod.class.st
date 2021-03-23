@@ -61,9 +61,11 @@ GPMethod >> possibleSenders: variables [
 
 	sendersCache notNil ifTrue: [ ^ sendersCache ].
 	sendersCache := variables select: [ :v | 
-		                v types
-			                ifNil: [ true ]
-			                ifNotNil: [ v types includes: realClass ] ].
+		|ts|
+		ts := v types.
+		ts
+		ifNil: [ true ]
+		ifNotNil: [ (ts select: [ :class | (class canUnderstand: name)]) isNotEmpty  ]].
 	^ sendersCache
 ]
 
@@ -85,6 +87,12 @@ GPMethod >> result [
 { #category : #accessing }
 GPMethod >> result: types [ 
 	result:= types
+]
+
+{ #category : #accessing }
+GPMethod >> sendersCache [ 	
+	
+	^ sendersCache 
 ]
 
 { #category : #accessing }
