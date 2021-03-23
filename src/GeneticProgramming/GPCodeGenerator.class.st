@@ -69,7 +69,7 @@ GPCodeGenerator >> assignWeightToVar: aVar [
 		(w> 0) 
 			ifTrue: [aVar weight: w]
 			ifFalse: [aVar weight: 1]. ].
-	(weightGen = 'default')
+	(weightGen = 'hierarchy')
 	ifTrue: [ self weightByClass: aVar ].
 	(weightGen = 'uniform')
 	ifTrue: [ aVar weight: 1 ].
@@ -607,15 +607,15 @@ GPCodeGenerator >> verifyArgument: aIndividual [
 ]
 
 { #category : #'as yet unclassified' }
-GPCodeGenerator >> weightByClass: aVar [
+GPCodeGenerator >> weightByClass: aElement [
 	|w cClass|
 	w := 500.
 	cClass := mainClass.
-	[aVar nameClass = cClass] whileFalse: [ 
+	[(aElement getClassGP = cClass name) or: (cClass = Object)] whileFalse: [ 
 		cClass := cClass superclass.
 		w := w /2. ].
+	(cClass = Object) ifTrue: [ aElement weight: w. ] ifFalse: [ aElement weight: 1 ]
 	
-	aVar weight: w.
 ]
 
 { #category : #accessing }

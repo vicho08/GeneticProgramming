@@ -10,6 +10,11 @@ Class {
 	#category : #'GeneticProgramming-CodeGenerator'
 }
 
+{ #category : #'as yet unclassified' }
+GPVariable >> getClassGP [ 
+	^ nameClass asSymbol 
+]
+
 { #category : #accessing }
 GPVariable >> name [
 	^name
