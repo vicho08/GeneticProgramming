@@ -55,7 +55,7 @@ GPCodeGenerator >> assignWeightTo: aMethod [
 		(w> 0) 
 			ifTrue: [aMethod weight: w]
 			ifFalse: [aMethod weight: 1]. ].
-	(weightGen = 'default')
+	(weightGen = 'uniform')
 	ifTrue: [ aMethod weight: 1 ].
 ]
 
@@ -71,6 +71,8 @@ GPCodeGenerator >> assignWeightToVar: aVar [
 			ifFalse: [aVar weight: 1]. ].
 	(weightGen = 'default')
 	ifTrue: [ self weightByClass: aVar ].
+	(weightGen = 'uniform')
+	ifTrue: [ aVar weight: 1 ].
 ]
 
 { #category : #'as yet unclassified' }
