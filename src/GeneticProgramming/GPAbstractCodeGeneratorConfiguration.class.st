@@ -78,13 +78,13 @@ assigment 	:= Obj := call
 	(depth = 1) 
 		ifTrue: [ 0 to: n do: 
 			[ :i | 
-			rootNode addChild: self newTerminalVariable].
+			rootNode addChild: (self newTerminalVariableUnderstandBy: rootNode)].
 			^ self].
 		
 	0 to: n do: [ :i | "33% cut tree"
 		((self randomElementOf: (0 to: 9)) <3)
 		ifTrue: [ 
-			rootNode addChild: self newTerminalVariable ]
+			rootNode addChild: (self newTerminalVariableUnderstandBy: rootNode) ]
 		ifFalse: [ 
 			f := self methodNode.
 			rootNode addChild: f.
@@ -119,6 +119,7 @@ GPAbstractCodeGeneratorConfiguration >> methodNode [
 	res argsType: (mt args).
 	res returnType: (mt result).
 	res realClass: (mt realClass).
+	res senders: (mt sendersCache).
 	^ res 
 ]
 
@@ -169,6 +170,21 @@ GPAbstractCodeGeneratorConfiguration >> newSenderVariable: aNameMethod [
 GPAbstractCodeGeneratorConfiguration >> newTerminalVariable [
 	| res vt t|
 	vt := (self pickRandomVariable: (self variables) with: (self randomElementOf: (0 to: (self sumWeightsAllVariables)))).
+	t := vt name.
+	res := GPNodeGeneratorCode new.
+	res printBlock: [ :children :context | t asString ].
+	res evaluationBlock: [ :children :context | context at: t]  .
+	res nodeType: 'variable'.
+	res returnType: (vt types).
+	^ res
+]
+
+{ #category : #'instance creation' }
+GPAbstractCodeGeneratorConfiguration >> newTerminalVariableUnderstandBy: aNode [
+	| res vt t|
+	(aNode nodeType ~= 'method') ifTrue: [ ^ self newTerminalVariable  ].
+	vt := (self pickRandomVariable: (aNode senders) with: (self randomElementOf: (0 to: (self sumWeights: (aNode senders))))).
+	
 	t := vt name.
 	res := GPNodeGeneratorCode new.
 	res printBlock: [ :children :context | t asString ].
@@ -261,6 +277,16 @@ GPAbstractCodeGeneratorConfiguration >> returnNode [
 	res name: 'return'.
 	res numArgs: 0.
 	^ res 
+]
+
+{ #category : #'as yet unclassified' }
+GPAbstractCodeGeneratorConfiguration >> sumWeights: aCollection [
+	|sum|
+	sum := 0.
+	aCollection do: [ :var |
+		sum := sum + (var weight).
+		 ].
+	^ sum
 ]
 
 { #category : #'as yet unclassified' }
