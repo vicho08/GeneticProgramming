@@ -174,13 +174,18 @@ GPEngineGeneratorCode >> rouletteSelection [
 
 { #category : #evolution }
 GPEngineGeneratorCode >> totalFitnessOfGeneration [
-	|total|
+	|total info totalTests|
 	total:= 0.
+	infoRoulette := 0.
+	totalTests:= (self configuration) totalTests.
 	population do: [ :individual  | 
 		|dis|
 		dis := (self distanceFromSolutionOf: individual).
 		self removeNewWindows.
-		total := total + dis. ].
+		total := total + dis. 
+		info := (dis * -1) + totalTests.
+		(info > 0 )
+		ifTrue: [infoRoulette := infoRoulette +info] . ].
 	
 	^total
 ]
