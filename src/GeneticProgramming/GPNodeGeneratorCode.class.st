@@ -6,7 +6,8 @@ Class {
 		'numArgs',
 		'returnType',
 		'argsType',
-		'realClass'
+		'realClass',
+		'senders'
 	],
 	#category : #'GeneticProgramming-Core'
 }
@@ -124,6 +125,16 @@ GPNodeGeneratorCode >> returnType [
 { #category : #accessing }
 GPNodeGeneratorCode >> returnType: aCollection [ 
 	returnType:= aCollection
+]
+
+{ #category : #accessing }
+GPNodeGeneratorCode >> senders [
+	^ senders
+]
+
+{ #category : #accessing }
+GPNodeGeneratorCode >> senders: aCollection [
+	senders := aCollection
 ]
 
 { #category : #'as yet unclassified' }
