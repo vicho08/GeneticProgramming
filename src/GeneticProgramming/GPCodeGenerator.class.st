@@ -46,27 +46,28 @@ GPCodeGenerator >> addWeights: aWeightGenerator [
 ]
 
 { #category : #'as yet unclassified' }
-GPCodeGenerator >> assignWeightTo: aMethod [
+GPCodeGenerator >> assignWeightTo: aElement [
+	|w|
 	(weightGen = 'similarity')
-	ifTrue: [ 
-		self weightBySimilarity: aMethod ].
+	ifTrue: [ w:= self weightBySimilarity: aElement ].
 	(weightGen = 'uniform')
-	ifTrue: [ aMethod weight: 1 ].
+	ifTrue: [ w:= 1000 ].
 	(weightGen = 'hierarchy')
-	ifTrue: [ self weightByClass: aMethod].
+	ifTrue: [ w:= self weightByClass: aElement].
+	(weightGen = 'balanced')
+	ifTrue: [ w:= ((self weightByClass: aElement) + (self weightBySimilarity: aElement )) *0.5].
+	
+	aElement weight: w.
 ]
 
 { #category : #'as yet unclassified' }
 GPCodeGenerator >> assignWeightToVar: aVar [
-	| w wg|
-	wg := WeightGenerator new.
 	(weightGen = 'similarity')
-	ifTrue: [ 
-		self weightBySimilarity: aVar ].
+	ifTrue: [ self weightBySimilarity: aVar ].
 	(weightGen = 'hierarchy')
 	ifTrue: [ self weightByClass: aVar ].
 	(weightGen = 'uniform')
-	ifTrue: [ aVar weight: 1 ].
+	ifTrue: [ aVar weight: 1000 ].
 ]
 
 { #category : #'as yet unclassified' }
@@ -91,7 +92,7 @@ GPCodeGenerator >> assignWeigthsVars: vars [
 	vars do: [ :var |
 		(var name = #self) 
 			ifTrue: [ var weight: 1000 ]
-			ifFalse: [self assignWeightToVar: var ].
+			ifFalse: [self assignWeightTo: var ].
 		sum := sum + (var weight).
 		 ].
 	sumWeightsAllVariables := sum.
@@ -608,7 +609,7 @@ GPCodeGenerator >> weightByClass: aElement [
 	[(aElement getClassGP = cClass name) or: (cClass = Object)] whileFalse: [ 
 		cClass := cClass superclass.
 		w := w /2. ].
-	(cClass = Object) ifTrue: [ aElement weight: w. ] ifFalse: [ aElement weight: 1 ]
+	(cClass = Object) ifTrue: [ ^ 1. ] ifFalse: [ ^ w ]
 	
 ]
 
@@ -618,8 +619,8 @@ GPCodeGenerator >> weightBySimilarity: aElement [
 	wg:= WeightGenerator new.
 	w:= 1000 - (11* (wg compare: (aElement name asString) with: (nameMethod asString))). 
 		(w> 0) 
-			ifTrue: [aElement weight: w]
-			ifFalse: [aElement weight: 1].
+			ifTrue: [^ w]
+			ifFalse: [^ 1].
 ]
 
 { #category : #accessing }

@@ -12,7 +12,7 @@ Class {
 
 { #category : #'as yet unclassified' }
 GPVariable >> getClassGP [ 
-	^ nameClass asSymbol 
+	^ nameClass name
 ]
 
 { #category : #accessing }
