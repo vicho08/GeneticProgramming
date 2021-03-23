@@ -274,9 +274,9 @@ GPCodeGenerator >> distanceFromSolutionOf: individual [
 	If this returns 0, then the individual is a perfect match
 	"
 	|codeToCompile eval penalty|
-	individual fitnessCache ifNotNil: [ ^ individual fitnessCache ].
-	codeToCompile := self codeToCompile: individual.	
 	
+	individual fitnessCache ifNotNil: [ ^ individual fitnessCache ].
+	codeToCompile := self codeToCompile: individual.		
 	self tryToCompileCode: codeToCompile . 
 		
 	penalty := individual numberOfNodes <= 10
@@ -294,22 +294,19 @@ GPCodeGenerator >> distanceFromSolutionOf: individual [
 	
 	eval := 0.
 	
-	"classesTesting do: [ :class |
-		[|running|
-		running:= class buildSuite run.
-		eval := eval + (running passed size) ] on: Halt do: [^1000]]."
-
+	
 	(packageTesting classesTesting )  do: [ :class |
 		|running p|
 		p := [ class buildSuite run.] newProcess.
 		p resume.
-		(Delay forSeconds: 0.5) wait.
+		(Delay forSeconds: 0.7) wait.
 			p isTerminated 
 			ifTrue: [
 				running:= class buildSuite run.
 				eval := eval + (running passed size)]
 			ifFalse: [ 
 				"self inform: 'Not terminated'. "
+				penalty := penalty + 10000.
     			p terminate ]].
 	
 	"the fitness is the difference between total tests and passed tests"
@@ -342,9 +339,11 @@ GPCodeGenerator >> extractVariableNames: code [
 { #category : #'as yet unclassified' }
 GPCodeGenerator >> getArgumentTypes: aMethod [
 	|ans|
+	(aMethod arguments isNotNil and: (aMethod result isNotNil))ifTrue:[
 	ans := (aMethod argumentTypes).
 	(ans size ~= 0) ifTrue:[ ^ ans first asOrderedCollection].
-	^ ans asOrderedCollection 
+	^ ans asOrderedCollection ].
+	^ nil
 ]
 
 { #category : #'as yet unclassified' }
@@ -373,7 +372,8 @@ GPCodeGenerator >> getMethods: aSetMethods [
 			method numArgs: (self getCountArgument: (method name) class: (method realClass)).
 			(m hasBeenExecuted) ifTrue:[
 				method args: (self getArgumentTypes: m).
-				method result: (m returnType) asOrderedCollection].
+				m result ifNotNil:[
+				method result: (m returnType) asOrderedCollection]].
 			method
 		 ].
 
@@ -386,6 +386,7 @@ GPCodeGenerator >> initialize [
 	super initialize.
 	self restartRespondsVariables.
 	SettersMethod initialize.
+	typesSpyCache := Dictionary new. 
 	self callSystemWeight: ({ 57 . 70 . 90 . 95 . 98}) asOrderedCollection .
 ]
 
@@ -562,6 +563,7 @@ GPCodeGenerator >> tryToCompileCode: sourceCode [
 GPCodeGenerator >> typesBySpy: aClass [
 	|vars cs vs ans ms|
 	"types of intance variables"
+	(typesSpyCache includes: aClass) ifTrue: [ ^ typesSpyCache at: aClass ].
 	
 	vars:= aClass instVarNames.
 	cs := aClass name asSymbol.
@@ -570,9 +572,10 @@ GPCodeGenerator >> typesBySpy: aClass [
 	ans:= Dictionary new. 
 	vs do: [ :m | 
 		|t|
-		t:= [m returnType] on: Exception do: [ nil ].
-		ans at: (m selector) put: t].
-	
+		t:= m result.
+		t ifNil: [ans at: (m selector) put: nil]
+		ifNotNil: [ ans at: (m selector) put: ((m result asOrderedCollection) addAll: (m returnType ) asOrderedCollection; yourself) ]].
+	typesSpyCache at: aClass put: ans.
 	^ans
 ]
 
