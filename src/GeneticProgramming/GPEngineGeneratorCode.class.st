@@ -56,32 +56,26 @@ GPEngineGeneratorCode >> addToFile: aDictionary [
 GPEngineGeneratorCode >> createNewGeneration [
 	"The argument is a collection of GPNode, each element being the root node of an individual."
 	"check if problem solved"
-	| newInd newInd2 newInds newPopulation sizeHalf n_calls|
+	| newInd newInd2 newInds newPopulation sizeHalf|
 	(self distanceFromSolutionOf: self pickBestIndividual) = 0 ifTrue: [ ^ self ].
 	self removeNewWindows.
 	newPopulation := OrderedCollection new. 
 	newPopulation add: self pickBestIndividual.
 	sizeHalf := ((population size -1) / 2.0) ceiling.
 	sizeHalf timesRepeat: [
-		newInds := self repeatOperatorsGenetics.
+		newInds := self repeatOperatorsGenetics.	
+		newInds := self tryReviewNumberOfCalls: newInds.
+		newInds := self tryVerifyArguments: newInds.
+		
 		newInd := newInds at: 1.
 		newInd2 := newInds at: 2.
-		n_calls:= (self configuration ) randomCalls.
-		[self verifyCallsMethods: ({newInd . newInd2} asOrderedCollection) value: n_calls] whileFalse: [ 
-		newInds:= self repeatOperatorsGenetics. 
-		newInd := newInds at:1.
-		newInd2 := newInds at: 2.].
-		[(self verifyArguments: {newInd. newInd2})] whileFalse: [
 		
-		newInds:= self repeatOperatorsGenetics. 
-		newInd := newInds at:1.
-		newInd2 := newInds at: 2.  ].
 		newPopulation add: newInd.
 		newPopulation add: newInd2.  
 	].
 	self removeNewWindows.
 	population := newPopulation.
-	fitnessOfPopulation := self totalFitnessOfGeneration 
+	fitnessOfPopulation := self totalFitnessOfGeneration.
 ]
 
 { #category : #'as yet unclassified' }
@@ -188,6 +182,33 @@ GPEngineGeneratorCode >> totalFitnessOfGeneration [
 		ifTrue: [infoRoulette := infoRoulette +info] . ].
 	
 	^total
+]
+
+{ #category : #'as yet unclassified' }
+GPEngineGeneratorCode >> tryReviewNumberOfCalls: childs [
+	|stop n_calls ans|
+	
+	n_calls:= (self configuration ) randomCalls.
+	ans := childs.
+	[self verifyCallsMethods: ans value: n_calls] whileFalse: [
+		stop := configuration randomElementOf: (0 to: 9).
+		(stop = 9) ifTrue: [ ^ ans ].
+
+		ans := self repeatOperatorsGenetics].
+		n_calls:= (self configuration ) randomCalls.
+	^ ans
+]
+
+{ #category : #'as yet unclassified' }
+GPEngineGeneratorCode >> tryVerifyArguments: childs [
+	|ans|
+	ans := childs.
+	[(self verifyArguments: ans)] whileFalse: [
+		
+		ans := self repeatOperatorsGenetics ].
+	
+	^ ans
+	
 ]
 
 { #category : #'as yet unclassified' }
