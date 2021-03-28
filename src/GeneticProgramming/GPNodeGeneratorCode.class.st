@@ -44,14 +44,14 @@ GPNodeGeneratorCode >> crossOverTwoChildrenWith: anotherNode using: random [
 	index2 := (random nextInteger: anotherNode numberOfNodes - 1) + 1.
 	child1 := self crossOverWith: anotherNode at: index1 at: index2.
 	[ self verifyVariable: child1 ] whileTrue: [ 
-		index1 := (random nextInt: self numberOfNodes - 1) + 1.
-		index2 := (random nextInt: anotherNode numberOfNodes - 1) + 1.
+		index1 := (random nextInteger: self numberOfNodes - 1) + 1.
+		index2 := (random nextInteger: anotherNode numberOfNodes - 1) + 1.
 		child1 := self crossOverWith: anotherNode at: index1 at: index2 ].
 
 	child2 := anotherNode crossOverWith: self at: index2 at: index1.
 	[ self verifyVariable: child2 ] whileTrue: [ 
-		index1 := (random nextInt: self numberOfNodes - 1) + 1.
-		index2 := (random nextInt: anotherNode numberOfNodes - 1) + 1.
+		index1 := (random nextInteger: self numberOfNodes - 1) + 1.
+		index2 := (random nextInteger: anotherNode numberOfNodes - 1) + 1.
 		child2 := anotherNode crossOverWith: self at: index2 at: index1 ].
 
 	^ { 

@@ -24,6 +24,11 @@ GPMethod >> args: aCollection [
 ]
 
 { #category : #'as yet unclassified' }
+GPMethod >> getClassGP [ 
+	^ realClass 
+]
+
+{ #category : #'as yet unclassified' }
 GPMethod >> implementorsClasses [
    |im|
 	im := ((self name) implementors).

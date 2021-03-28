@@ -46,31 +46,37 @@ GPCodeGenerator >> addWeights: aWeightGenerator [
 ]
 
 { #category : #'as yet unclassified' }
-GPCodeGenerator >> assignWeightTo: aMethod [
-	| w wg|
-	wg := WeightGenerator new.
+GPCodeGenerator >> assignWeightTo: aElement [
+	|w|
 	(weightGen = 'similarity')
-	ifTrue: [ 
-		w:= 1000 - (11* (wg compare: (aMethod name asString) with: (nameMethod asString))). 
-		(w> 0) 
-			ifTrue: [aMethod weight: w]
-			ifFalse: [aMethod weight: 1]. ].
-	(weightGen = 'default')
-	ifTrue: [ aMethod weight: 1 ].
+	ifTrue: [ w:= self weightBySimilarity: aElement ].
+	(weightGen = 'naive')
+	ifTrue: [ w:= 1000 ].
+	(weightGen = 'uniform')
+	ifTrue: [ w:= 1 ].
+	(weightGen = 'hierarchy')
+	ifTrue: [ w:= self weightByClass: aElement].
+	(weightGen = 'balanced')
+	ifTrue: [ w:= ((self weightByClass: aElement) + (self weightBySimilarity: aElement )) *0.5].
+	
+	aElement weight: w.
 ]
 
 { #category : #'as yet unclassified' }
 GPCodeGenerator >> assignWeightToVar: aVar [
-	| w wg|
-	wg := WeightGenerator new.
+	|w|
 	(weightGen = 'similarity')
-	ifTrue: [ 
-		w:= 1000 - (11* (wg compare: (aVar name asString) with: (nameMethod asString))). 
-		(w> 0) 
-			ifTrue: [aVar weight: w]
-			ifFalse: [aVar weight: 1]. ].
-	(weightGen = 'default')
-	ifTrue: [ self weightByClass: aVar ].
+	ifTrue: [ w:= self weightBySimilarity: aVar ].
+	(weightGen = 'naive')
+	ifTrue: [ w:= 1000 ].
+	(weightGen = 'uniform')
+	ifTrue: [ w:= self weightByClass: aVar ].
+	(weightGen = 'hierarchy')
+	ifTrue: [ w:= self weightByClass: aVar].
+	(weightGen = 'balanced')
+	ifTrue: [ w:= ((self weightByClass: aVar) + (self weightBySimilarity: aVar )) *0.5].
+	
+	aVar weight: w.
 ]
 
 { #category : #'as yet unclassified' }
@@ -609,15 +615,25 @@ GPCodeGenerator >> verifyArgument: aIndividual [
 ]
 
 { #category : #'as yet unclassified' }
-GPCodeGenerator >> weightByClass: aVar [
+GPCodeGenerator >> weightByClass: aElement [
 	|w cClass|
 	w := 500.
 	cClass := mainClass.
-	[aVar nameClass = cClass] whileFalse: [ 
+	[(aElement getClassGP = cClass name) or: (cClass = Object)] whileFalse: [ 
 		cClass := cClass superclass.
 		w := w /2. ].
+	(cClass = Object) ifTrue: [ ^ 1. ] ifFalse: [ ^ w ]
 	
-	aVar weight: w.
+]
+
+{ #category : #'as yet unclassified' }
+GPCodeGenerator >> weightBySimilarity: aElement [
+	|w wg|
+	wg:= WeightGenerator new.
+	w:= 1000 - (11* (wg compare: (aElement name asString) with: (nameMethod asString))). 
+		(w> 0) 
+			ifTrue: [^ w]
+			ifFalse: [^ 1].
 ]
 
 { #category : #accessing }
