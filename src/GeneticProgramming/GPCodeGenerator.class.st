@@ -50,8 +50,10 @@ GPCodeGenerator >> assignWeightTo: aElement [
 	|w|
 	(weightGen = 'similarity')
 	ifTrue: [ w:= self weightBySimilarity: aElement ].
-	(weightGen = 'uniform')
+	(weightGen = 'naive')
 	ifTrue: [ w:= 1000 ].
+	(weightGen = 'uniform')
+	ifTrue: [ w:= 1 ].
 	(weightGen = 'hierarchy')
 	ifTrue: [ w:= self weightByClass: aElement].
 	(weightGen = 'balanced')
@@ -62,12 +64,19 @@ GPCodeGenerator >> assignWeightTo: aElement [
 
 { #category : #'as yet unclassified' }
 GPCodeGenerator >> assignWeightToVar: aVar [
+	|w|
 	(weightGen = 'similarity')
-	ifTrue: [ self weightBySimilarity: aVar ].
-	(weightGen = 'hierarchy')
-	ifTrue: [ self weightByClass: aVar ].
+	ifTrue: [ w:= self weightBySimilarity: aVar ].
+	(weightGen = 'naive')
+	ifTrue: [ w:= 1000 ].
 	(weightGen = 'uniform')
-	ifTrue: [ aVar weight: 1000 ].
+	ifTrue: [ w:= self weightByClass: aVar ].
+	(weightGen = 'hierarchy')
+	ifTrue: [ w:= self weightByClass: aVar].
+	(weightGen = 'balanced')
+	ifTrue: [ w:= ((self weightByClass: aVar) + (self weightBySimilarity: aVar )) *0.5].
+	
+	aVar weight: w.
 ]
 
 { #category : #'as yet unclassified' }
@@ -92,7 +101,7 @@ GPCodeGenerator >> assignWeigthsVars: vars [
 	vars do: [ :var |
 		(var name = #self) 
 			ifTrue: [ var weight: 1000 ]
-			ifFalse: [self assignWeightTo: var ].
+			ifFalse: [self assignWeightToVar: var ].
 		sum := sum + (var weight).
 		 ].
 	sumWeightsAllVariables := sum.
