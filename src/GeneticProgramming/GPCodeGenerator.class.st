@@ -32,7 +32,7 @@ GPCodeGenerator >> addSelf [
 
 { #category : #adding }
 GPCodeGenerator >> addVariables: aClass [
-
+	(aClass instVarNames) ifNil: [ ^ self ].
 	variables addAll: (self createGPArgs: (aClass instVarNames) class: aClass types: (self typesBySpy: aClass)).
 ]
 
@@ -373,7 +373,11 @@ GPCodeGenerator >> getMethods: aSetMethods [
 			(m hasBeenExecuted) ifTrue:[
 				method args: (self getArgumentTypes: m).
 				m result ifNotNil:[
-				method result: (m returnType) asOrderedCollection]].
+				|ts|
+				ts:= [(m returnType).]
+					on: Exception
+					do: [ nil].	
+				method result: ts asOrderedCollection]].
 			method
 		 ].
 
