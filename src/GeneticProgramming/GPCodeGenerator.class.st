@@ -461,7 +461,14 @@ GPCodeGenerator >> nameMethod [
 
 { #category : #accessing }
 GPCodeGenerator >> nameMethod: aNameMethod [
-	nameMethod := aNameMethod
+	nameMethod := aNameMethod.
+]
+
+{ #category : #'as yet unclassified' }
+GPCodeGenerator >> nameMethod: aNameMethod in: aClass [
+	self nameMethod: aNameMethod.
+	self nameClass: aClass.
+	self removeMainMethod.
 ]
 
 { #category : #hooks }
@@ -477,6 +484,11 @@ GPCodeGenerator >> packageTesting [
 { #category : #'as yet unclassified' }
 GPCodeGenerator >> packageTesting: aString [
 	packageTesting:= GPPackage new name: aString.
+]
+
+{ #category : #removing }
+GPCodeGenerator >> removeMainMethod [
+	methods := methods select: [ :m | (mainClass name ~= m realClass) or: (m name ~= nameMethod asSymbol) ]
 ]
 
 { #category : #'as yet unclassified' }
