@@ -20,7 +20,9 @@ Class {
 		'packageTesting',
 		'sumWeightsAllVariables',
 		'totalTests',
-		'spyCache'
+		'spyCache',
+		'balancedA',
+		'balancedB'
 	],
 	#category : #'GeneticProgramming-CodeGenerator'
 }
@@ -57,7 +59,7 @@ GPCodeGenerator >> assignWeightTo: aElement [
 	(weightGen = 'hierarchy')
 	ifTrue: [ w:= self weightByClass: aElement].
 	(weightGen = 'balanced')
-	ifTrue: [ w:= ((self weightByClass: aElement) + (self weightBySimilarity: aElement )) *0.5].
+	ifTrue: [ w:= ((self weightByClass: aElement) * balancedA )+ ((self weightBySimilarity: aElement ) *balancedB)].
 	
 	aElement weight: w.
 ]
@@ -89,6 +91,14 @@ GPCodeGenerator >> assignWeigthsVars: vars [
 		 ].
 	sumWeightsAllVariables := sum.
 
+]
+
+{ #category : #'as yet unclassified' }
+GPCodeGenerator >> balancedWith: aValue and: anOtherValue [
+"aValue + anOtherValue = 1"
+(aValue + anOtherValue = 1) ifFalse: [ ^ 'Invalid values for balanced system weight' ].
+balancedA := aValue.
+balancedB := anOtherValue.
 ]
 
 { #category : #'as yet unclassified' }
@@ -461,6 +471,11 @@ GPCodeGenerator >> packageTesting [
 { #category : #'as yet unclassified' }
 GPCodeGenerator >> packageTesting: aString [
 	packageTesting:= GPPackage new name: aString.
+]
+
+{ #category : #hooks }
+GPCodeGenerator >> populationSize [ 
+	^ 60
 ]
 
 { #category : #removing }

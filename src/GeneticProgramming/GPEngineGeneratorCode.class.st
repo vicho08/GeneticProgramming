@@ -3,6 +3,7 @@ Class {
 	#superclass : #GPEngine,
 	#instVars : [
 		'infoRoulette',
+		'mutateRate',
 		'nameFile',
 		'windows'
 	],
@@ -124,6 +125,12 @@ GPEngineGeneratorCode >> initialize [
 	self createWindows.
 ]
 
+{ #category : #accessing }
+GPEngineGeneratorCode >> mutateRate: aValue [
+"0-100"
+mutateRate := aValue.
+]
+
 { #category : #hooks }
 GPEngineGeneratorCode >> nameFile: aNameFile [
 	nameFile:= aNameFile
@@ -143,9 +150,9 @@ GPEngineGeneratorCode >> repeatOperatorsGenetics [
 		i1 := self  rouletteSelection .
 		i2 := self rouletteSelection .
 		newInds := i1 crossOverTwoChildrenWith: i2 using: configuration random.
-		((configuration randomInt: 100) > 70)
+		((configuration randomInt: 100) > mutateRate )
 			ifTrue: [ self mutation: (newInds at: 1) ].
-		((configuration randomInt: 100) > 70)
+		((configuration randomInt: 100) > mutateRate)
 			ifTrue: [ self mutation: (newInds at: 2) ].
 		^ newInds
 ]
