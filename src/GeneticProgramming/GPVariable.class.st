@@ -59,3 +59,8 @@ GPVariable >> weight [
 GPVariable >> weight: aNumber [
 	weight:= aNumber
 ]
+
+{ #category : #'as yet unclassified' }
+GPVariable >> weightByUniform: configuration [
+	^ configuration weightByClass: self
+]

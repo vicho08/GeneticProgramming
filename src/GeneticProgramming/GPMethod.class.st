@@ -109,3 +109,8 @@ GPMethod >> weight [
 GPMethod >> weight: aNumber [
 	weight:= aNumber 
 ]
+
+{ #category : #'as yet unclassified' }
+GPMethod >> weightByUniform: configuration [
+	^ 1
+]

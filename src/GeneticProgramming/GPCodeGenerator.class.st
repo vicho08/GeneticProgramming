@@ -53,30 +53,13 @@ GPCodeGenerator >> assignWeightTo: aElement [
 	(weightGen = 'naive')
 	ifTrue: [ w:= 1000 ].
 	(weightGen = 'uniform')
-	ifTrue: [ w:= 1 ].
+	ifTrue: [ w:= aElement weightByUniform: self].
 	(weightGen = 'hierarchy')
 	ifTrue: [ w:= self weightByClass: aElement].
 	(weightGen = 'balanced')
 	ifTrue: [ w:= ((self weightByClass: aElement) + (self weightBySimilarity: aElement )) *0.5].
 	
 	aElement weight: w.
-]
-
-{ #category : #'as yet unclassified' }
-GPCodeGenerator >> assignWeightToVar: aVar [
-	|w|
-	(weightGen = 'similarity')
-	ifTrue: [ w:= self weightBySimilarity: aVar ].
-	(weightGen = 'naive')
-	ifTrue: [ w:= 1000 ].
-	(weightGen = 'uniform')
-	ifTrue: [ w:= self weightByClass: aVar ].
-	(weightGen = 'hierarchy')
-	ifTrue: [ w:= self weightByClass: aVar].
-	(weightGen = 'balanced')
-	ifTrue: [ w:= ((self weightByClass: aVar) + (self weightBySimilarity: aVar )) *0.5].
-	
-	aVar weight: w.
 ]
 
 { #category : #'as yet unclassified' }
@@ -101,7 +84,7 @@ GPCodeGenerator >> assignWeigthsVars: vars [
 	vars do: [ :var |
 		(var name = #self) 
 			ifTrue: [ var weight: 1000 ]
-			ifFalse: [self assignWeightToVar: var ].
+			ifFalse: [self assignWeightTo: var ].
 		sum := sum + (var weight).
 		 ].
 	sumWeightsAllVariables := sum.
@@ -256,12 +239,6 @@ GPCodeGenerator >> createSpy [
 GPCodeGenerator >> createSpy: aCode [ 
 
 	^ (Type profile: [aCode] onPackageNamed: mainPackage ).
-]
-
-{ #category : #'as yet unclassified' }
-GPCodeGenerator >> createTypeCollector: aClass [ 
-"type collector of current class"		
-	^ TypeCollector typeInstvarsOfClass: aClass
 ]
 
 { #category : #'as yet unclassified' }
